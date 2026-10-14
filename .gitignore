@@ -1,0 +1,48 @@
+# Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Rust / Tauri
+src-tauri/target/
+target/
+
+# Environment and Secrets (CRITICAL)
+.env
+.env.*
+!.env.example
+*.key
+*.key.pub
+gunnerius.key
+gunnerius.key.pub
+
+# Update Deploy Artifacts and Executables
+updates_deploy/GUNNERIUS_*.exe*
+*.exe
+*.dll
+*.rar
+*.zip
+*.7z
+scratch/
+
+# Logs & Diagnostics
+logs/
+*.log
+gunnerius_crash.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor & OS files
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

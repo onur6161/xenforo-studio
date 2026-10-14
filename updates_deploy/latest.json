@@ -1,0 +1,11 @@
+{
+  "notes": "GUNNERIUS v0.2.9\n* Cloudflare R2 anahtar entegrasyonu (Tum yoneticiler icin aktif)\n* Windows baslangic kararlilik ve cokme korumasi",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0p6M2F6VEx4ZHc5bnp1eVJXNzN1cHpLWDZIcFI2dFFoM1N1OFc2QjhaRlIxYTNJNGxOWGhJRmhHaWNhUStmVVQrWFdTajNtV3pKWHZSbTB6Z2hHU0FBPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMDA4MzY1CWZpbGU6R1VOTkVSSVVTXzAuMi45X3g2NC1zZXR1cC5leGUJdmVyc2lvbjowLjIuOQpXR0RTcW9qTkd0aXRsQ05wSExTa3g0Q3ZVdnlma2F0bzF4UUR4SklWMDVSMmdvR1l4cnlCWVJiR1BERWJiazk0QWZPbU9HN3B4OTBvWDhlcW02TVFBQT09Cg==",
+      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.9_x64-setup.exe"
+    }
+  },
+  "pub_date": "2026-10-14T20:06:54.099769100+00:00",
+  "version": "0.2.9"
+}

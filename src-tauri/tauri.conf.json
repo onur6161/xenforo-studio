@@ -1,0 +1,47 @@
+{
+    "$schema":  "https://schema.tauri.app/config/2",
+    "productName":  "GUNNERIUS",
+    "version":  "0.2.9",
+    "identifier":  "com.gunnerius.portal",
+    "build":  {
+                  "beforeDevCommand":  "npm run dev",
+                  "devUrl":  "http://localhost:1420",
+                  "beforeBuildCommand":  "npm run build",
+                  "frontendDist":  "../dist"
+              },
+    "app":  {
+                "windows":  [
+                                {
+                                    "title":  "GUNNERIUS - Forum Yonetim Portali",
+                                    "width":  1100,
+                                    "height":  750,
+                                    "minWidth":  900,
+                                    "minHeight":  600,
+                                    "center":  true
+                                }
+                            ],
+                "security":  {
+                                 "csp":  "default-src \u0027self\u0027; script-src \u0027self\u0027; style-src \u0027self\u0027 \u0027unsafe-inline\u0027; img-src \u0027self\u0027 data: https: asset:; font-src \u0027self\u0027 data:; connect-src \u0027self\u0027 ipc: http://ipc.localhost https://turkceyama.org https://indir.turkceyama.org https://*.r2.cloudflarestorage.com"
+                             }
+            },
+    "bundle":  {
+                   "active":  true,
+                   "targets":  "all",
+                   "createUpdaterArtifacts":  true,
+                   "icon":  [
+                                "icons/32x32.png",
+                                "icons/128x128.png",
+                                "icons/128x128@2x.png",
+                                "icons/icon.icns",
+                                "icons/icon.ico"
+                            ]
+               },
+    "plugins":  {
+                    "updater":  {
+                                    "pubkey":  "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDgwOUUzRTBCNUE1N0ZBNDYKUldSRytsZGFDejZlZ0YzRlpMUGwyV0VqVnNFcDB6RmdWdlRuRTI2bEVpV0RFMDV2Z3lFczFoRGcK",
+                                    "endpoints":  [
+                                                      "https://indir.turkceyama.org/updates/latest.json"
+                                                  ]
+                                }
+                }
+}
