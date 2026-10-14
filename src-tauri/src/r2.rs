@@ -385,15 +385,20 @@ pub async fn publish_release_to_r2_internal(
     let mut exe_path: Option<PathBuf> = None;
     let mut sig_path: Option<PathBuf> = None;
 
+    let version_pattern = format!("_{}_", version);
     if let Ok(mut entries) = tokio::fs::read_dir(&deploy_dir).await {
         while let Ok(Some(entry)) = entries.next_entry().await {
             let p = entry.path();
             if let Some(ext) = p.extension() {
                 if ext == "exe" {
-                    exe_path = Some(p.clone());
-                    let sig_p = p.with_extension("exe.sig");
-                    if sig_p.exists() {
-                        sig_path = Some(sig_p);
+                    let fname = p.file_name().unwrap_or_default().to_string_lossy();
+                    let matches_ver = fname.contains(&version_pattern) || fname.contains(&version);
+                    if matches_ver || exe_path.is_none() {
+                        exe_path = Some(p.clone());
+                        let sig_p = p.with_extension("exe.sig");
+                        if sig_p.exists() {
+                            sig_path = Some(sig_p);
+                        }
                     }
                 }
             }

@@ -1,6 +1,6 @@
 [package]
 name = "turkceyama-studio"
-version = "0.2.9"
+version = "0.2.10"
 description = "TurkceYama.org Forum ve Bulut Dosya Yonetim Studyosu"
 authors = ["TurkceYama.org"]
 edition = "2021"
@@ -23,7 +23,7 @@ tokio = { version = "1", features = ["full"] }
 uuid = { version = "1", features = ["v4"] }
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
-rust-s3 = { version = "0.35", default-features = false, features = ["tokio-rustls-tls"] }
+rust-s3 = { version = "0.35", default-features = false, features = ["use-tokio-native-tls"] }
 chrono = "0.4"
 rfd = "0.15"
 futures-util = "0.3"
