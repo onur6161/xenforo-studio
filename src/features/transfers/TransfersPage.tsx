@@ -22,6 +22,7 @@ import {
   Search,
   ShieldAlert,
   Radio,
+  Globe,
 } from "lucide-react";
 import { TransferQueueResponse } from "./types";
 
@@ -30,6 +31,81 @@ interface TransfersPageProps {
   role: string | null;
   onNavigateToR2?: (folderKey?: string) => void;
 }
+
+export const getProviderBadge = (provider?: string) => {
+  switch (provider) {
+    case "gdrive":
+      return {
+        name: "Google Drive",
+        badge: "bg-blue-500/20 text-blue-300 border-blue-500/40",
+      };
+    case "yandex":
+      return {
+        name: "Yandex Disk",
+        badge: "bg-rose-500/20 text-rose-300 border-rose-500/40",
+      };
+    case "mediafire":
+      return {
+        name: "MediaFire",
+        badge: "bg-cyan-500/20 text-cyan-300 border-cyan-500/40",
+      };
+    default:
+      return {
+        name: "Doğrudan İndirme",
+        badge: "bg-[#d4af37]/20 text-[#d4af37] border-[#d4af37]/40",
+      };
+  }
+};
+
+export const detectUrlProvider = (url: string) => {
+  const lower = url.trim().toLowerCase();
+  if (lower.includes("drive.google.com") || lower.includes("docs.google.com")) {
+    return {
+      type: "gdrive",
+      title: "Google Drive Doğrudan Çözücü Aktif",
+      desc: "Büyük dosya virüs taraması onayı otomatik geçilecek, dosya fiziksel olarak R2'ye akıtılacaktır.",
+      color: "border-blue-500/50 bg-blue-950/30 text-blue-300",
+      supported: true,
+    };
+  }
+  if (lower.includes("disk.yandex") || lower.includes("yadi.sk")) {
+    return {
+      type: "yandex",
+      title: "Yandex Disk API Çözücü Aktif",
+      desc: "Resmi Yandex Cloud API üzerinden yüksek hızlı CDN doğrudan indirme akışı başlatılacaktır.",
+      color: "border-rose-500/50 bg-rose-950/30 text-rose-300",
+      supported: true,
+    };
+  }
+  if (lower.includes("mediafire.com")) {
+    return {
+      type: "mediafire",
+      title: "MediaFire Akış Çözücü Aktif",
+      desc: "MediaFire web sayfası çözümlenerek doğrudan indirme butonu bağlantısı yakalanacaktır.",
+      color: "border-cyan-500/50 bg-cyan-950/30 text-cyan-300",
+      supported: true,
+    };
+  }
+  if (lower.includes("mega.nz")) {
+    return {
+      type: "mega",
+      title: "MEGA Desteklenmiyor",
+      desc: "MEGA uçtan uca şifreleme ve günlük IP indirme kotası uyguladığı için desteklenmemektedir. Lütfen Google Drive, Yandex veya MediaFire kullanın.",
+      color: "border-amber-500/50 bg-amber-950/40 text-amber-300",
+      supported: false,
+    };
+  }
+  if (lower.startsWith("http://") || lower.startsWith("https://")) {
+    return {
+      type: "direct",
+      title: "Doğrudan İndirme Bağlantısı",
+      desc: "Uzak sunucudan 16 MB'lık S3 blokları ile doğrudan Cloudflare R2'ye aktarılacaktır.",
+      color: "border-[#d4af37]/40 bg-[#d4af37]/10 text-[#d4af37]",
+      supported: true,
+    };
+  }
+  return null;
+};
 
 export const TransfersPage: React.FC<TransfersPageProps> = ({
   sessionToken,
@@ -98,6 +174,15 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
     e.preventDefault();
     if (!sourceUrl.trim()) {
       setFeedbackMsg({ type: "error", text: "Lütfen geçerli bir indirme URL'si girin." });
+      return;
+    }
+
+    const detected = detectUrlProvider(sourceUrl);
+    if (detected && !detected.supported) {
+      setFeedbackMsg({
+        type: "error",
+        text: "MEGA bağlantıları şifreli aktarım ve günlük indirme kotası nedeniyle desteklenmemektedir. Lütfen Google Drive, Yandex Disk veya MediaFire kullanın.",
+      });
       return;
     }
 
@@ -526,6 +611,18 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
+                        {/* Sağlayıcı Rozeti */}
+                        {(() => {
+                          const prov = getProviderBadge(job.provider);
+                          return (
+                            <span
+                              className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md border ${prov.badge}`}
+                            >
+                              {prov.name}
+                            </span>
+                          );
+                        })()}
+
                         <span className="font-bold text-sm text-white truncate max-w-md font-mono">
                           {job.name}
                         </span>
@@ -547,7 +644,7 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                           }`}
                         >
                           {isRunning
-                            ? "AKTI AKTARIYOR"
+                            ? "AKTARIYOR"
                             : isCompleted
                             ? "TAMAMLANDI"
                             : isFailed
@@ -559,6 +656,20 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                             : "KUYRUKTA"}
                         </span>
                       </div>
+
+                      {/* Canlı Aşama Bildirimi (Stage) */}
+                      {job.stage && (
+                        <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-300/90 font-mono">
+                          {isRunning ? (
+                            <Zap className="w-3.5 h-3.5 text-[#d4af37] animate-pulse shrink-0" />
+                          ) : isCompleted ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          ) : (
+                            <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                          )}
+                          <span className="truncate">{job.stage}</span>
+                        </div>
+                      )}
 
                       {/* URL ve Hedef Konum */}
                       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
@@ -738,20 +849,53 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
             <form onSubmit={handleStartTransfer} className="space-y-4">
               {/* Kaynak URL */}
               <div>
-                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5">
-                  Kaynak İndirme URL'si (HTTP / HTTPS) *
+                <label className="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <span>Kaynak İndirme URL'si (HTTP / HTTPS) *</span>
+                  <span className="text-[10px] text-gray-400 font-mono normal-case">
+                    Google Drive • Yandex • MediaFire • Doğrudan
+                  </span>
                 </label>
                 <input
                   type="url"
                   required
-                  placeholder="https://örnek-sunucu.com/dosyalar/oyun-yamasi-v2.zip"
+                  placeholder="https://drive.google.com/file/d/... veya https://disk.yandex.com.tr/d/... veya https://mediafire.com/file/..."
                   value={sourceUrl}
                   onChange={(e) => setSourceUrl(e.target.value)}
                   className="w-full bg-[#101319] border border-[#2b303c] rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] font-mono transition"
                 />
-                <p className="text-[11px] text-gray-500 mt-1">
-                  Doğrudan indirme bağlantısı olmalıdır. Dosya boyutu sınır olmaksızın 16 MB bloklar halinde aktarılır.
-                </p>
+
+                {/* Akıllı Bağlantı Algılama Rozeti */}
+                {(() => {
+                  const detected = detectUrlProvider(sourceUrl);
+                  if (!detected) {
+                    return (
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Google Drive, Yandex Disk, MediaFire veya doğrudan dosya indirme bağlantısı girin.
+                      </p>
+                    );
+                  }
+
+                  return (
+                    <div
+                      className={`mt-2 p-2.5 rounded-xl border text-xs flex items-start gap-2 ${detected.color} animate-in fade-in duration-200`}
+                    >
+                      <Globe className="w-4 h-4 shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold flex items-center gap-1.5">
+                          <span>{detected.title}</span>
+                          {!detected.supported && (
+                            <span className="text-[10px] px-1.5 py-0.2 bg-rose-500/20 text-rose-300 rounded border border-rose-500/40">
+                              Desteklenmiyor
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] mt-0.5 opacity-90 leading-relaxed font-sans">
+                          {detected.desc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Özel Dosya Adı (Opsiyonel) */}

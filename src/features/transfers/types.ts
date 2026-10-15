@@ -9,6 +9,8 @@ export interface TransferJob {
   speed_mbps: number;
   eta_seconds: number;
   status: "queued" | "running" | "paused" | "completed" | "failed" | "cancelled";
+  provider?: "gdrive" | "yandex" | "mediafire" | "direct" | string;
+  stage?: string;
   error_message?: string | null;
   created_at: string;
   completed_at?: string | null;

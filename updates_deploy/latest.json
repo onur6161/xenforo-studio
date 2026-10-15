@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.10\n* Windows yerel TLS motoru (native-tls / Schannel) entegrasyonu\n* Sertifika uyumsuzluklarina karsi tam koruma\n* Cloudflare R2 erisimi ve aktarim kuyrugu tam kararlilik guncellemesi",
+  "notes": "GUNNERIUS v0.2.11\n* Akilli Bulut Cozuculeri (Google Drive, Yandex Disk, MediaFire fiziksel aktarim)\n* Buyuk dosya ve virus uyarisi otomatik bypass destegi\n* Tum sekmelerde aktif canli kayan ilerleme status kapsulu (Mini-Player)\n* Anti-Fake HTML sahte dosya koruma kalkani",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0NOeFk0VGhReU9mRjNPWUZBcTRiVzI3Ym0zeWFRYmRBVUN5NHBUSVpiNlNsU3J5RzkzdCsyWjFKcGxOd3dPc2JTYndPcWtBM2dWUkQ0ZUZHb3gzRGdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMDE4OTQyCWZpbGU6R1VOTkVSSVVTXzAuMi4xMF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjEwClFQZkVzQmduVmc5L1d3dU8zZTZzYWFsV2hPYTh1MU1sRllLRDU5cFVMclhkZ2JCUWthRVhJcndsUEVXSHBaWnBCSmFrWk9yRU9zZDlYZHZnNk9YaEFRPT0K",
-      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.10_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0VtVkFxOHdQUy85VlJiaWZLbWFhc1JOVWowM2pQWWw1eXF6UkpORDZUTlRqL0lEOStscmwxeG1wY0dYMGNic0FUU0VCSnlMWGFRcHVrQ0w4eGZ4cGdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMDgwMzEwCWZpbGU6R1VOTkVSSVVTXzAuMi4xMV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjExCnF5VFN5VXc4d1lCTzlUTXY0cmx6OUdIV2QvV0IvMDIzOEZoRzN6ZVdkTzlRekRyYlV5NnBIUWVrQUJwaDNKSnlNU1NUOVhCSVRPMjBaWDNIZVpmaEN3PT0K",
+      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.11_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-14T23:05:08.799819+00:00",
-  "version": "0.2.10"
+  "pub_date": "2026-10-15T16:06:14.267808+00:00",
+  "version": "0.2.11"
 }

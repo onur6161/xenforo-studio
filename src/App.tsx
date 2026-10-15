@@ -35,6 +35,7 @@ import { PrivacySecurityModal } from "./components/PrivacySecurityModal";
 import { InteractiveTourGuide } from "./components/InteractiveTourGuide";
 import { ProfileThemeModal } from "./components/ProfileThemeModal";
 import { CorporateAvatar } from "./components/CorporateAvatar";
+import { FloatingTransferBar } from "./components/FloatingTransferBar";
 import { ToastProvider } from "./components/Toast";
 import "./App.css";
 
@@ -576,6 +577,12 @@ const MainApp: React.FC = () => {
         onColorChange={handleColorChange}
         avatarEmblem={avatarEmblem}
         onEmblemChange={handleEmblemChange}
+      />
+
+      {/* Global Kayan Aktarım Çubuğu (Tüm Sekmelerde Aktif) */}
+      <FloatingTransferBar
+        currentTab={activeTab}
+        onNavigateTab={(tab) => setActiveTab(tab)}
       />
 
       {/* Otomatik & Manuel Güncelleme Modalı */}
