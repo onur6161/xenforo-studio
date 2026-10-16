@@ -59,7 +59,12 @@ export const getProviderBadge = (provider?: string) => {
 
 export const detectUrlProvider = (url: string) => {
   const lower = url.trim().toLowerCase();
-  if (lower.includes("drive.google.com") || lower.includes("docs.google.com")) {
+  if (
+    lower.includes("drive.google.com") ||
+    lower.includes("docs.google.com") ||
+    lower.includes("usercontent.google.com") ||
+    lower.includes("googleusercontent.com")
+  ) {
     return {
       type: "gdrive",
       title: "Google Drive Doğrudan Çözücü Aktif",

@@ -156,7 +156,11 @@ pub type SharedTransferManager = Arc<Mutex<TransferManager>>;
 /// Bağlantı sağlayıcısını URL'den tespit eder
 pub fn detect_provider(url: &str) -> &'static str {
     let lower = url.to_lowercase();
-    if lower.contains("drive.google.com") || lower.contains("docs.google.com") {
+    if lower.contains("drive.google.com")
+        || lower.contains("docs.google.com")
+        || lower.contains("usercontent.google.com")
+        || lower.contains("googleusercontent.com")
+    {
         "gdrive"
     } else if lower.contains("disk.yandex") || lower.contains("yadi.sk") {
         "yandex"
@@ -305,10 +309,16 @@ async fn resolve_gdrive(client: &reqwest::Client, url: &str) -> Result<ResolvedS
     let file_id = extract_gdrive_id(url)
         .ok_or_else(|| "Google Drive dosya kimliği (ID) bağlantıdan okunamadı.".to_string())?;
 
-    let direct_url = format!("https://drive.google.com/uc?export=download&id={}", file_id);
+    // Eğer kullanıcı zaten drive.usercontent.google.com veya export=download verdiyse o URL'yi kullan,
+    // yoksa standart direct URL oluştur:
+    let initial_url = if url.contains("export=download") && (url.contains("usercontent.google.com") || url.contains("drive.google.com/uc")) {
+        url.to_string()
+    } else {
+        format!("https://drive.usercontent.google.com/download?id={}&export=download&authuser=0", file_id)
+    };
 
     let res = client
-        .get(&direct_url)
+        .get(&initial_url)
         .header(
             "User-Agent",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -334,7 +344,7 @@ async fn resolve_gdrive(client: &reqwest::Client, url: &str) -> Result<ResolvedS
     }
     let cookie_header = cookies_vec.join("; ");
 
-    // Eğer doğrudan dosya indiyse
+    // Eğer doğrudan dosya indiyse (küçük dosyalar)
     if !content_type.contains("text/html") {
         let filename = extract_filename_from_headers(res.headers());
         let total_bytes = res.content_length();
@@ -351,74 +361,153 @@ async fn resolve_gdrive(client: &reqwest::Client, url: &str) -> Result<ResolvedS
     // HTML döndüyse büyük dosya virüs onay sayfasıdır
     let body_text = res.text().await.map_err(|e| format!("Google Drive yanıt metni okunamadı: {}", e))?;
 
-    let mut confirm_token: Option<String> = None;
-    let mut confirm_url: Option<String> = None;
-
-    if let Some(pos) = body_text.find("confirm=") {
-        let rem = &body_text[pos + 8..];
-        let token = rem
-            .split('&')
-            .next()
-            .unwrap_or("")
-            .split('"')
-            .next()
-            .unwrap_or("")
-            .split('\'')
-            .next()
-            .unwrap_or("");
-        if !token.is_empty() {
-            confirm_token = Some(token.to_string());
-        }
-    }
-
-    if let Some(ref token) = confirm_token {
-        confirm_url = Some(format!(
-            "https://drive.google.com/uc?export=download&confirm={}&id={}",
-            token, file_id
-        ));
-    } else if let Some(pos) = body_text.find("/uc?export=download") {
+    // HTML'den orijinal dosya adını ayıkla: <span class="uc-name-size"><a ...>Mekan2 Güncell.rar</a> (2.0G)</span>
+    let mut html_filename = None;
+    if let Some(pos) = body_text.find("class=\"uc-name-size\"") {
         let rem = &body_text[pos..];
-        if let Some(end_pos) = rem.find('"').or_else(|| rem.find('\'')) {
-            let path = &rem[..end_pos];
-            let full_url = format!("https://drive.google.com{}", path.replace("&amp;", "&"));
-            confirm_url = Some(full_url);
+        if let Some(a_pos) = rem.find("<a ") {
+            let a_rem = &rem[a_pos..];
+            if let Some(tag_end) = a_rem.find('>') {
+                let text_rem = &a_rem[tag_end + 1..];
+                if let Some(end_a) = text_rem.find("</a>") {
+                    let fn_candidate = text_rem[..end_a].trim();
+                    if !fn_candidate.is_empty() {
+                        html_filename = Some(clean_filename(fn_candidate));
+                    }
+                }
+            }
         }
     }
 
-    if let Some(target_url) = confirm_url {
-        let mut req = client.get(&target_url).header(
-            "User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        );
-        if !cookie_header.is_empty() {
-            req = req.header("Cookie", &cookie_header);
-        }
-        let second_res = req.send().await.map_err(|e| format!("Google Drive onay isteği hatası: {}", e))?;
-        let second_ct = second_res
-            .headers()
-            .get(reqwest::header::CONTENT_TYPE)
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or("")
-            .to_string();
+    // Modern Google Drive formunu ve tüm input parametrelerini (uuid, confirm, id, export, authuser) ayıkla:
+    let mut form_action = "https://drive.usercontent.google.com/download".to_string();
+    let mut form_params: Vec<(String, String)> = Vec::new();
 
-        if second_ct.contains("text/html") {
-            return Err("Google Drive indirme kotası aşılmış veya dosya genel paylaşıma kapatılmış.".to_string());
+    if let Some(form_pos) = body_text.find("id=\"download-form\"") {
+        let form_snippet = &body_text[form_pos..];
+        let form_end = form_snippet.find("</form>").unwrap_or(form_snippet.len().min(3000));
+        let form_content = &form_snippet[..form_end];
+
+        if let Some(action_pos) = form_content.find("action=\"") {
+            let action_rem = &form_content[action_pos + 8..];
+            if let Some(end_q) = action_rem.find('"') {
+                form_action = action_rem[..end_q].replace("&amp;", "&").to_string();
+            }
         }
 
-        let filename = extract_filename_from_headers(second_res.headers());
-        let total_bytes = second_res.content_length();
-        let final_url = second_res.url().to_string();
+        let mut search_pos = 0;
+        while let Some(input_pos) = form_content[search_pos..].find("<input ") {
+            let abs_input_pos = search_pos + input_pos;
+            let input_snippet = &form_content[abs_input_pos..];
+            let tag_end = input_snippet.find('>').unwrap_or(input_snippet.len().min(200));
+            let tag = &input_snippet[..tag_end];
 
-        return Ok(ResolvedStream {
-            stream_url: final_url,
-            filename,
-            total_bytes,
-            content_type: Some(second_ct),
-            cookies: if cookie_header.is_empty() { None } else { Some(cookie_header) },
-        });
+            let mut name = String::new();
+            let mut val = String::new();
+
+            if let Some(n_pos) = tag.find("name=\"") {
+                let n_rem = &tag[n_pos + 6..];
+                if let Some(q) = n_rem.find('"') {
+                    name = n_rem[..q].to_string();
+                }
+            }
+            if let Some(v_pos) = tag.find("value=\"") {
+                let v_rem = &tag[v_pos + 7..];
+                if let Some(q) = v_rem.find('"') {
+                    val = v_rem[..q].to_string();
+                }
+            }
+
+            if !name.is_empty() {
+                form_params.push((name, val));
+            }
+
+            search_pos = abs_input_pos + tag_end + 1;
+            if search_pos >= form_content.len() {
+                break;
+            }
+        }
     }
 
-    Err("Google Drive indirme bağlantısı çözülemedi. Dosya gizli, silinmiş veya erişim izni verilmemiş olabilir.".to_string())
+    let target_download_url = if !form_params.is_empty() {
+        let query_str = form_params
+            .into_iter()
+            .map(|(k, v)| format!("{}={}", urlencoding_simple(&k), urlencoding_simple(&v)))
+            .collect::<Vec<_>>()
+            .join("&");
+        format!("{}?{}", form_action, query_str)
+    } else {
+        // Fallback: confirm ve uuid ara
+        let mut confirm_token = "t".to_string();
+        if let Some(pos) = body_text.find("confirm=") {
+            let rem = &body_text[pos + 8..];
+            let token = rem
+                .split('&')
+                .next()
+                .unwrap_or("")
+                .split('"')
+                .next()
+                .unwrap_or("")
+                .split('\'')
+                .next()
+                .unwrap_or("");
+            if !token.is_empty() {
+                confirm_token = token.to_string();
+            }
+        }
+        let mut uuid_param = String::new();
+        if let Some(pos) = body_text.find("uuid=") {
+            let rem = &body_text[pos + 5..];
+            let u = rem
+                .split('&')
+                .next()
+                .unwrap_or("")
+                .split('"')
+                .next()
+                .unwrap_or("")
+                .split('\'')
+                .next()
+                .unwrap_or("");
+            if !u.is_empty() {
+                uuid_param = format!("&uuid={}", u);
+            }
+        }
+        format!(
+            "https://drive.usercontent.google.com/download?id={}&export=download&authuser=0&confirm={}{}",
+            file_id, confirm_token, uuid_param
+        )
+    };
+
+    let mut req = client.get(&target_download_url).header(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    );
+    if !cookie_header.is_empty() {
+        req = req.header("Cookie", &cookie_header);
+    }
+    let second_res = req.send().await.map_err(|e| format!("Google Drive onay isteği hatası: {}", e))?;
+    let second_ct = second_res
+        .headers()
+        .get(reqwest::header::CONTENT_TYPE)
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("")
+        .to_string();
+
+    if second_ct.contains("text/html") {
+        return Err("Google Drive indirme kotası aşılmış veya dosya genel paylaşıma kapatılmış.".to_string());
+    }
+
+    let filename = extract_filename_from_headers(second_res.headers()).or(html_filename);
+    let total_bytes = second_res.content_length();
+    let final_url = second_res.url().to_string();
+
+    Ok(ResolvedStream {
+        stream_url: final_url,
+        filename,
+        total_bytes,
+        content_type: Some(second_ct),
+        cookies: if cookie_header.is_empty() { None } else { Some(cookie_header) },
+    })
 }
 
 /// Yandex Disk resmi API'si üzerinden doğrudan indirme bağlantısını çözer
