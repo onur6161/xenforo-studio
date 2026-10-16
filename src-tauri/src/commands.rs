@@ -191,7 +191,6 @@ fn default_transfer_concurrency() -> usize { 4 }
 fn default_chunk_size_mb() -> usize { 16 }
 fn default_speed_limit_mbps() -> usize { 0 }
 fn default_true() -> bool { true }
-fn default_false() -> bool { false }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppSettings {
@@ -215,9 +214,9 @@ pub struct AppSettings {
     pub enable_native_notifications: bool,
     #[serde(default = "default_true")]
     pub enable_sound_effects: bool,
-    #[serde(default = "default_false")]
+    #[serde(default = "default_true")]
     pub auto_start_with_windows: bool,
-    #[serde(default = "default_false")]
+    #[serde(default = "default_true")]
     pub minimize_to_tray: bool,
 }
 
@@ -276,8 +275,6 @@ pub fn load_settings(
         return Err("Yetkisiz Erişim: Sunucu güvenlik anahtarlarını görüntülemek için Süper Yönetici oturumu gereklidir.".to_string());
     }
 
-    let auto_start_with_windows = crate::diagnostics::is_windows_autostart_enabled();
-
     Ok(AppSettings {
         forum_url: {
             let v = get_secret("forum_url").unwrap_or_default();
@@ -313,8 +310,14 @@ pub fn load_settings(
         speed_limit_mbps: get_secret("speed_limit_mbps").ok().and_then(|v| v.parse().ok()).unwrap_or(0),
         enable_native_notifications: get_secret("enable_native_notifications").map(|v| v == "1").unwrap_or(true),
         enable_sound_effects: get_secret("enable_sound_effects").map(|v| v == "1").unwrap_or(true),
-        auto_start_with_windows,
-        minimize_to_tray: get_secret("minimize_to_tray").map(|v| v == "1").unwrap_or(false),
+        auto_start_with_windows: {
+            let enabled = get_secret("auto_start_with_windows").map(|v| v == "1").unwrap_or(true);
+            if enabled && !crate::diagnostics::is_windows_autostart_enabled() {
+                let _ = crate::diagnostics::configure_windows_autostart(true);
+            }
+            enabled
+        },
+        minimize_to_tray: get_secret("minimize_to_tray").map(|v| v == "1").unwrap_or(true),
     })
 }
 

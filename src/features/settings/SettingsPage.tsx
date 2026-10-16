@@ -96,8 +96,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
     speed_limit_mbps: 0,
     enable_native_notifications: true,
     enable_sound_effects: true,
-    auto_start_with_windows: false,
-    minimize_to_tray: false,
+    auto_start_with_windows: true,
+    minimize_to_tray: true,
   });
 
   const [loading, setLoading] = useState(false);
@@ -151,8 +151,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
           speed_limit_mbps: saved.speed_limit_mbps || 0,
           enable_native_notifications: saved.enable_native_notifications ?? true,
           enable_sound_effects: saved.enable_sound_effects ?? true,
-          auto_start_with_windows: saved.auto_start_with_windows ?? false,
-          minimize_to_tray: saved.minimize_to_tray ?? false,
+          auto_start_with_windows: saved.auto_start_with_windows ?? true,
+          minimize_to_tray: saved.minimize_to_tray ?? true,
         }));
         localStorage.setItem(
           "gunnerius_enable_sounds",

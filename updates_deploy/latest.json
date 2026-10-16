@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.16 - Hızlı Komut Paleti (Ctrl+K), Gelişmiş Ağ & Aktarım Hızlandırma, Canlı Ping & Benchmark Merkezi, Tek Tıkla Önbellek Temizleme, Windows Başlangıcı, Şifreli Ayar Yedekleme ve SHA-256 Checksum Doğrulama",
+  "notes": "GUNNERIUS v0.2.16 - Sistem Entegrasyonu Varsayılan Açık, Sadeleştirilmiş ve Gelişmiş Sürüm Dağıtım Merkezi, Hızlı Komut Paleti (Ctrl+K), Canlı Ağ Benchmark, Önbellek Temizleme ve SHA-256 Checksum",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0xqY3kxTjRJQnN2YzBMcmR6OVhmRzJINWlnY3VrM0xTWEhaSzJDSm5IUFVkZFJxWm1FM0RBanRKMndtUmZLallpQyt4Vk9WM3JDd3RYUUZtaFpGSHc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTU3NTM2CWZpbGU6R1VOTkVSSVVTXzAuMi4xNl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE2Clk2QVdxb2pCVEtUM2VHZktsVUEybCtYOUZTMlNVeDZZdlc0bGx4RDRwRjJ3cFNtaGl6dHUyMEpCUUFocksvdytnbG1Gb2ZPSWErUlJZa1lFSWsrV0J3PT0K",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0JXcStBTjRXWjNlbmRVeG1qMm8rYXkxWXdPZGlsUTBLZ1l4c0hBYnFyVVFJdmsyWERTa3N5MkhtR1M2Q1ZMUzUvZ2tOaWlmOTNwL1pYWmh2dkFnWmdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTU5NTUwCWZpbGU6R1VOTkVSSVVTXzAuMi4xNl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE2Cm5BbGdDZTZPcnlKblVndzZOMUx1RHFBa0VhY2FCbzJxYUx3U1JzN1Rwc0dObTYydjR2WWhiWDg5Ky9sNSt3aWpOQkkwbVFhUTE2MzI5SzFCeUptcERRPT0K",
       "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.16_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-16T13:35:40.058654500+00:00",
+  "pub_date": "2026-10-16T14:06:25.384928500+00:00",
   "version": "0.2.16"
 }
