@@ -425,31 +425,31 @@ const MainApp: React.FC = () => {
       {/* SAĞ ANA İÇERİK */}
       <main className="flex-1 flex flex-col overflow-hidden bg-[#0f1115]">
         {/* ÜST BİLGİ ÇUBUĞU */}
-        <header className="h-18 px-8 border-b border-[#2b303c] flex items-center justify-between bg-[#14171e]/70 backdrop-blur-md shrink-0">
-          <div className="flex items-center gap-3">
+        <header className="h-18 px-6 border-b border-[#2b303c] flex items-center justify-between bg-[#14171e]/70 backdrop-blur-md shrink-0 gap-4">
+          <div className="flex items-center gap-2.5 shrink-0">
             <span className="text-xs text-gray-400">Aktif Sayfa:</span>
             <span className="text-sm font-semibold text-white">
-              {activeTab === "release" && "Sürüm & Dağıtım Merkezi (Cloudflare R2)"}
+              {activeTab === "release" && "Sürüm & Dağıtım"}
               {activeTab === "settings" && "Ayarlar & Bağlantılar"}
-              {activeTab === "dashboard" && "Genel Durum & İzleme Merkezi"}
-              {activeTab === "topics" && "Konular & Mesajlar (AI Analitiği)"}
+              {activeTab === "dashboard" && "Genel Durum"}
+              {activeTab === "topics" && "Konular & Mesajlar"}
               {activeTab === "users" && "Üye Yönetimi"}
               {activeTab === "files" && "R2 Bulut Dosyaları"}
               {activeTab === "transfers" && "Aktarım Kuyruğu"}
             </span>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto py-1">
             {/* Hızlı Komut Paleti (Ctrl + K) */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-[#2e3648] hover:border-amber-500/40 rounded-xl text-xs text-gray-300 hover:text-white transition cursor-pointer shadow-sm group"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-[#2e3648] hover:border-amber-500/40 rounded-xl text-xs text-gray-300 hover:text-white transition cursor-pointer shadow-sm group shrink-0"
               title="Hızlı Komut Paleti ve Arama (Ctrl+K)"
             >
               <Search className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition" />
-              <span className="hidden md:inline font-medium">Hızlı Arama & Komutlar</span>
-              <kbd className="hidden lg:inline text-[9px] font-mono bg-[#11141c] border border-[#2b3345] px-1.5 py-0.5 rounded text-gray-400">
-                Ctrl+K
+              <span className="hidden xl:inline font-medium">Komutlar</span>
+              <kbd className="text-[9px] font-mono bg-[#11141c] border border-[#2b3345] px-1.5 py-0.5 rounded text-gray-400">
+                ⌘K
               </kbd>
             </button>
 

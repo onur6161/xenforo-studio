@@ -746,17 +746,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
                 Bilgisayar açıldığında GUNNERIUS arka planda hazır beklesin
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.auto_start_with_windows}
-                onChange={(e) =>
-                  setSettings({ ...settings, auto_start_with_windows: e.target.checked })
-                }
-                className="sr-only peer"
+            <button
+              type="button"
+              onClick={() =>
+                setSettings({
+                  ...settings,
+                  auto_start_with_windows: !settings.auto_start_with_windows,
+                })
+              }
+              className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0 ${
+                settings.auto_start_with_windows ? "bg-[#d4af37]" : "bg-[#252d3d]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
+                  settings.auto_start_with_windows ? "translate-x-6" : "translate-x-0"
+                }`}
               />
-              <div className="w-11 h-6 bg-[#252d3d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#d4af37]"></div>
-            </label>
+            </button>
           </div>
 
           {/* Sistem Tepsisine Küçült */}
@@ -767,17 +774,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
                 Kapat butonuna basıldığında aktarımların kesilmemesi için saatin yanına insin
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.minimize_to_tray}
-                onChange={(e) =>
-                  setSettings({ ...settings, minimize_to_tray: e.target.checked })
-                }
-                className="sr-only peer"
+            <button
+              type="button"
+              onClick={() =>
+                setSettings({
+                  ...settings,
+                  minimize_to_tray: !settings.minimize_to_tray,
+                })
+              }
+              className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0 ${
+                settings.minimize_to_tray ? "bg-purple-500" : "bg-[#252d3d]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
+                  settings.minimize_to_tray ? "translate-x-6" : "translate-x-0"
+                }`}
               />
-              <div className="w-11 h-6 bg-[#252d3d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
-            </label>
+            </button>
           </div>
 
           {/* Yerel Windows Bildirimleri */}
@@ -788,17 +802,24 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
                 Yama aktarımı veya AI raporu üretildiğinde sağ alttan bildirim gösterilsin
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.enable_native_notifications}
-                onChange={(e) =>
-                  setSettings({ ...settings, enable_native_notifications: e.target.checked })
-                }
-                className="sr-only peer"
+            <button
+              type="button"
+              onClick={() =>
+                setSettings({
+                  ...settings,
+                  enable_native_notifications: !settings.enable_native_notifications,
+                })
+              }
+              className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0 ${
+                settings.enable_native_notifications ? "bg-emerald-500" : "bg-[#252d3d]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
+                  settings.enable_native_notifications ? "translate-x-6" : "translate-x-0"
+                }`}
               />
-              <div className="w-11 h-6 bg-[#252d3d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-            </label>
+            </button>
           </div>
 
           {/* Ses Efektleri */}
@@ -809,7 +830,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
                 <button
                   type="button"
                   onClick={() => playSuccessChime()}
-                  className="text-[10px] text-amber-400 hover:text-white px-2 py-0.5 bg-[#1f2638] rounded border border-amber-500/30"
+                  className="text-[10px] text-amber-400 hover:text-white px-2 py-0.5 bg-[#1f2638] rounded border border-amber-500/30 cursor-pointer"
                 >
                   Test Sesi Çal
                 </button>
@@ -818,21 +839,26 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ sessionToken }) => {
                 Kuyruk bittiğinde veya kayıt tamamlandığında hafif onay sesi çalsın
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.enable_sound_effects}
-                onChange={(e) => {
-                  setSettings({ ...settings, enable_sound_effects: e.target.checked });
-                  localStorage.setItem(
-                    "gunnerius_enable_sounds",
-                    e.target.checked ? "true" : "false"
-                  );
-                }}
-                className="sr-only peer"
+            <button
+              type="button"
+              onClick={() => {
+                const next = !settings.enable_sound_effects;
+                setSettings({ ...settings, enable_sound_effects: next });
+                localStorage.setItem(
+                  "gunnerius_enable_sounds",
+                  next ? "true" : "false"
+                );
+              }}
+              className={`w-12 h-6 rounded-full transition-colors relative p-0.5 cursor-pointer shrink-0 ${
+                settings.enable_sound_effects ? "bg-amber-400" : "bg-[#252d3d]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 rounded-full bg-white shadow-md transition-transform ${
+                  settings.enable_sound_effects ? "translate-x-6" : "translate-x-0"
+                }`}
               />
-              <div className="w-11 h-6 bg-[#252d3d] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-400"></div>
-            </label>
+            </button>
           </div>
         </div>
       </div>

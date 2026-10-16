@@ -308,16 +308,16 @@ pub fn load_settings(
         transfer_concurrency: get_secret("transfer_concurrency").ok().and_then(|v| v.parse().ok()).unwrap_or(4),
         chunk_size_mb: get_secret("chunk_size_mb").ok().and_then(|v| v.parse().ok()).unwrap_or(16),
         speed_limit_mbps: get_secret("speed_limit_mbps").ok().and_then(|v| v.parse().ok()).unwrap_or(0),
-        enable_native_notifications: get_secret("enable_native_notifications").map(|v| v == "1").unwrap_or(true),
-        enable_sound_effects: get_secret("enable_sound_effects").map(|v| v == "1").unwrap_or(true),
+        enable_native_notifications: get_secret("enable_native_notifications").map(|v| v != "0").unwrap_or(true),
+        enable_sound_effects: get_secret("enable_sound_effects").map(|v| v != "0").unwrap_or(true),
         auto_start_with_windows: {
-            let enabled = get_secret("auto_start_with_windows").map(|v| v == "1").unwrap_or(true);
+            let enabled = get_secret("auto_start_with_windows").map(|v| v != "0").unwrap_or(true);
             if enabled && !crate::diagnostics::is_windows_autostart_enabled() {
                 let _ = crate::diagnostics::configure_windows_autostart(true);
             }
             enabled
         },
-        minimize_to_tray: get_secret("minimize_to_tray").map(|v| v == "1").unwrap_or(true),
+        minimize_to_tray: get_secret("minimize_to_tray").map(|v| v != "0").unwrap_or(true),
     })
 }
 
@@ -1486,7 +1486,7 @@ pub async fn update_admin_heartbeat(
 ) -> Result<crate::admin_activity::AdminLiveSession, String> {
     let (user_id, username, role) = state.get_session_info(session_token.as_deref());
     let creds = load_r2_creds_from_keyring()?;
-    let app_version = "0.2.16";
+    let app_version = "0.2.17";
 
     crate::admin_activity::send_admin_heartbeat_internal(
         &creds,

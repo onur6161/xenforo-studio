@@ -1,6 +1,6 @@
 [package]
 name = "turkceyama-studio"
-version = "0.2.16"
+version = "0.2.17"
 description = "TurkceYama.org Forum ve Bulut Dosya Yonetim Studyosu"
 authors = ["TurkceYama.org"]
 edition = "2021"

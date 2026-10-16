@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.16 - Sistem Entegrasyonu Varsayılan Açık, Sadeleştirilmiş ve Gelişmiş Sürüm Dağıtım Merkezi, Hızlı Komut Paleti (Ctrl+K), Canlı Ağ Benchmark, Önbellek Temizleme ve SHA-256 Checksum",
+  "notes": "GUNNERIUS v0.2.17 - Sistem Entegrasyonu Varsayılan Açık, Modern Sürüm Dağıtım Merkezi, Hızlı Komut Paleti (⌘K), Otomatik Başlangıç ve Canlı R2 Senkronizasyonu",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0JXcStBTjRXWjNlbmRVeG1qMm8rYXkxWXdPZGlsUTBLZ1l4c0hBYnFyVVFJdmsyWERTa3N5MkhtR1M2Q1ZMUzUvZ2tOaWlmOTNwL1pYWmh2dkFnWmdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTU5NTUwCWZpbGU6R1VOTkVSSVVTXzAuMi4xNl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE2Cm5BbGdDZTZPcnlKblVndzZOMUx1RHFBa0VhY2FCbzJxYUx3U1JzN1Rwc0dObTYydjR2WWhiWDg5Ky9sNSt3aWpOQkkwbVFhUTE2MzI5SzFCeUptcERRPT0K",
-      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.16_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0pjSWpIOFA2aXVEeEdxUnhxL0FxRFQ1TUwzcDNvU2h1RWs4dkhzNXNVbksrMFVhNjlIMEUxTTQ3NU5id1Rld0E3YzNtdzNGdEQvQVNHK0ZXKzd2NFFNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTYzNTY1CWZpbGU6R1VOTkVSSVVTXzAuMi4xN194NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE3ClNzalFDaTgrZktLa1E3TXFBakpZbDVMTnFrUVVVUzQ2MEU3S0xhVEFWYWw0TGI0UXE1UU1nSkU3OGZlSlhSY1djYVZ1WUhHYld1ZlBTZlY3SDJEekRBPT0K",
+      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.17_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-16T14:06:25.384928500+00:00",
-  "version": "0.2.16"
+  "pub_date": "2026-10-16T15:14:00.051567400+00:00",
+  "version": "0.2.17"
 }
