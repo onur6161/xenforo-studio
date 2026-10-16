@@ -1428,7 +1428,7 @@ pub async fn update_admin_heartbeat(
 ) -> Result<crate::admin_activity::AdminLiveSession, String> {
     let (user_id, username, role) = state.get_session_info(session_token.as_deref());
     let creds = load_r2_creds_from_keyring()?;
-    let app_version = "0.2.14";
+    let app_version = "0.2.15";
 
     crate::admin_activity::send_admin_heartbeat_internal(
         &creds,
