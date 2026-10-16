@@ -80,12 +80,12 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: "admin-tracker",
     targetSelector: '[data-tour="topbar-admins"]',
-    title: "5. Canlı Yönetici Takibi & Süreç İzleme",
+    title: "5. Canlı Yönetici Takibi & Operasyonlar",
     badge: "OPERASYON • ADIM 5/8",
     icon: <Sparkles className="w-5 h-5 text-amber-400" />,
     description:
-      "Stüdyoyu kullanan diğer yöneticileri anlık olarak takip edin: Kim hangi sayfada, hangi operasyonu yapıyor (örnek: Yama yüklüyor, Konu açıyor)? Tek tıkla bilgisayarında çalışan kullanıcı uygulamalarını inceleyin.",
-    tip: "Sistem çekirdeği süreçleri filtrelenerek gizlilik ve antivirüs güvenliği tam olarak korunur.",
+      "Stüdyoyu kullanan diğer yöneticileri anlık olarak takip edin: Kim hangi sayfada, hangi operasyonu yapıyor (örnek: Yama yüklüyor, Konu açıyor)? Canlı durum rozetleri ve stüdyo içi eylem telemetrisi anlık güncellenir.",
+    tip: "Yöneticilerin oturum durumu Cloudflare R2 üzerinden 15 saniyede bir otomatik senkronize edilir.",
     position: "bottom",
   },
   {

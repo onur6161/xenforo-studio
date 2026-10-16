@@ -1,18 +1,6 @@
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
-use std::process::Command;
 use crate::r2::{create_r2_bucket, R2Credentials};
-
-#[cfg(target_os = "windows")]
-use std::os::windows::process::CommandExt;
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RunningProcessItem {
-    pub pid: u32,
-    pub name: String,
-    pub mem_usage: String,
-    pub session_type: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdminLiveSession {
@@ -28,83 +16,6 @@ pub struct AdminLiveSession {
     pub os: String,
     pub last_heartbeat: u64,
     pub status: String, // "online" | "idle" | "offline"
-    pub running_processes: Vec<RunningProcessItem>,
-}
-
-/// Windows üzerinde çalışan temel kullanıcı uygulamalarını güvenli ve sessiz bir şekilde listeler.
-/// CREATE_NO_WINDOW bayrağı kullanılarak hiçbir konsol penceresi açılmaz.
-/// Hassas sistem ve arka plan svchost süreçleri temizlenerek kullanıcı uygulamaları öne çıkarılır.
-pub fn get_local_running_processes() -> Vec<RunningProcessItem> {
-    let mut processes = Vec::new();
-
-    #[cfg(target_os = "windows")]
-    {
-        const CREATE_NO_WINDOW: u32 = 0x08000000;
-        let output = match Command::new("tasklist")
-            .args(["/FO", "CSV", "/NH"])
-            .creation_flags(CREATE_NO_WINDOW)
-            .output()
-        {
-            Ok(out) => out,
-            Err(_) => return processes,
-        };
-
-        if !output.status.success() {
-            return processes;
-        }
-
-        let stdout_str = String::from_utf8_lossy(&output.stdout);
-        for line in stdout_str.lines() {
-            let line = line.trim();
-            if line.is_empty() {
-                continue;
-            }
-
-            // CSV parçala: "Image Name","PID","Session Name","Session#","Mem Usage"
-            let parts: Vec<String> = line
-                .split("\",\"")
-                .map(|p| p.trim_matches('"').trim().to_string())
-                .collect();
-
-            if parts.len() >= 5 {
-                let name = parts[0].clone();
-                let pid = parts[1].parse::<u32>().unwrap_or(0);
-                let session_name = parts[2].clone();
-                let mem_usage = parts[4].clone();
-
-                let name_lower = name.to_lowercase();
-
-                // Sistem çekirdek servislerini filtrele (gizlilik ve netlik için)
-                if name_lower == "system"
-                    || name_lower == "system idle process"
-                    || name_lower == "registry"
-                    || name_lower.starts_with("svchost")
-                    || name_lower.starts_with("csrss")
-                    || name_lower.starts_with("wininit")
-                    || name_lower.starts_with("services")
-                    || name_lower.starts_with("lsass")
-                    || name_lower.starts_with("smss")
-                    || name_lower.starts_with("fontdrvhost")
-                {
-                    continue;
-                }
-
-                processes.push(RunningProcessItem {
-                    pid,
-                    name,
-                    mem_usage,
-                    session_type: session_name,
-                });
-            }
-        }
-    }
-
-    // İsme göre sırala
-    processes.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
-    // Maksimum ilk 60 kullanıcı uygulamasını döndür
-    processes.truncate(60);
-
-    processes
 }
 
 pub async fn send_admin_heartbeat_internal(
@@ -124,8 +35,6 @@ pub async fn send_admin_heartbeat_internal(
         .unwrap_or_else(|_| "Admin-PC".to_string());
     let os = format!("Windows ({})", std::env::consts::ARCH);
 
-    let processes = get_local_running_processes();
-
     let session = AdminLiveSession {
         user_id,
         username: username.to_string(),
@@ -139,7 +48,6 @@ pub async fn send_admin_heartbeat_internal(
         os,
         last_heartbeat: now_ts,
         status: "online".to_string(),
-        running_processes: processes,
     };
 
     let bucket = create_r2_bucket(creds)?;

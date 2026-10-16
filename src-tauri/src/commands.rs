@@ -1457,17 +1457,6 @@ pub async fn get_active_admins(
 }
 
 #[tauri::command]
-pub fn get_my_running_processes(
-    state: tauri::State<'_, AppState>,
-    session_token: Option<String>,
-) -> Result<Vec<crate::admin_activity::RunningProcessItem>, String> {
-    if !state.is_admin_session(session_token.as_deref()) {
-        return Err("Yetkisiz Erişim: Yönetici oturumu gereklidir.".to_string());
-    }
-    Ok(crate::admin_activity::get_local_running_processes())
-}
-
-#[tauri::command]
 pub async fn record_audit_event(
     state: tauri::State<'_, AppState>,
     session_token: Option<String>,

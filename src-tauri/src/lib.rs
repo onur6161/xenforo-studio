@@ -72,7 +72,6 @@ pub fn run() {
             commands::remove_transfer_job,
             commands::update_admin_heartbeat,
             commands::get_active_admins,
-            commands::get_my_running_processes,
             commands::record_audit_event,
             commands::get_audit_logs,
             commands::generate_daily_ai_report,

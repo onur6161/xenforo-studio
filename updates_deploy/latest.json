@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.14 - Canlı Yönetici Takibi & Süreç İzleme, R2 Audit Log Sistemi, AI Günlük Rapor, Adım Adım Açılış ve Sürüm Senkronizasyonu",
+  "notes": "GUNNERIUS v0.2.14 - Canlı Yönetici Takibi, R2 Audit Log Sistemi, AI Günlük Rapor, Adım Adım Açılış ve Sürüm Senkronizasyonu",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0hDeGtFcWk1bW1wbkF2TlpkeDYzanZEUVdyTHMvcnRjckxTbWhoemlaaEpjQzUzcCt3WDM3Z28vcDdDQm5TNmg3NTczUWt3b1Jta2t1UGNzVXN6cWdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTQ4NjQzCWZpbGU6R1VOTkVSSVVTXzAuMi4xNF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE0CmhTOHNHRDFibDlaWTVjYmF4eG1NVjkybXhZU0JwdFFMOEJzOHRVOTRKWTVaRTJSMG0xSGR5SU9rV3pZQWxwRjdtT1FyNWdtRDFqMEhaUWxSSUR2d0JnPT0K",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0V6UENETDZvQm9SNU5IZnNDamk2RkVyWTlaVEdPZlFyZGRKYWFWTzVKeVVxRTNzOGg1OUE4azlUK2ZycWJiRC9tYTRKeFh2b2QxYllUQks2N3VDL2dNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTQ5MjgxCWZpbGU6R1VOTkVSSVVTXzAuMi4xNF94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE0CmpQRE1pdXhvenRvYVB5Rk1ORGFTRzJRWkVrRHZPWEdDQXFqMHpFYnZMMTFPeUpDMG1iVlByRWdLNENZbGIzTHpGQUpZS1ZLSmNCV1Rqb1FSRzdlRUNRPT0K",
       "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.14_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-16T11:05:14.324548600+00:00",
+  "pub_date": "2026-10-16T11:15:32.841425700+00:00",
   "version": "0.2.14"
 }
