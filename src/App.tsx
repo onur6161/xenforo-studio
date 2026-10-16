@@ -16,7 +16,10 @@ import {
   Lock,
   Palette,
   Compass,
+  Search,
 } from "lucide-react";
+import { CommandPaletteModal } from "./components/CommandPaletteModal";
+import { ChecksumModal } from "./components/ChecksumModal";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { DashboardPage } from "./features/dashboard/DashboardPage";
 import { ReleaseHubPage } from "./features/release/ReleaseHubPage";
@@ -58,6 +61,8 @@ const MainApp: React.FC = () => {
   const [adminTrackerOpen, setAdminTrackerOpen] = useState(false);
   const [auditModalOpen, setAuditModalOpen] = useState(false);
   const [aiReportOpen, setAiReportOpen] = useState(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [checksumModalOpen, setChecksumModalOpen] = useState(false);
 
   // Kurumsal Avatar Tercihleri (Kalıcı Kayıt)
   const [avatarColor, setAvatarColor] = useState<string>(() => {
@@ -97,6 +102,11 @@ const MainApp: React.FC = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+        return;
+      }
       if (
         e.key === "F12" ||
         (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "J" || e.key === "C")) ||
@@ -430,6 +440,19 @@ const MainApp: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Hızlı Komut Paleti (Ctrl + K) */}
+            <button
+              onClick={() => setCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-[#2e3648] hover:border-amber-500/40 rounded-xl text-xs text-gray-300 hover:text-white transition cursor-pointer shadow-sm group"
+              title="Hızlı Komut Paleti ve Arama (Ctrl+K)"
+            >
+              <Search className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition" />
+              <span className="hidden md:inline font-medium">Hızlı Arama & Komutlar</span>
+              <kbd className="hidden lg:inline text-[9px] font-mono bg-[#11141c] border border-[#2b3345] px-1.5 py-0.5 rounded text-gray-400">
+                Ctrl+K
+              </kbd>
+            </button>
+
             {/* Canlı Yönetici Takibi & Süreç İzleme Butonu */}
             <button
               data-tour="topbar-admins"
@@ -679,6 +702,27 @@ const MainApp: React.FC = () => {
         isOpen={aiReportOpen}
         onClose={() => setAiReportOpen(false)}
         sessionToken={sessionToken}
+      />
+
+      {/* Hızlı Komut Paleti (Ctrl + K) Modalı */}
+      <CommandPaletteModal
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onNavigate={(tab) => setActiveTab(tab)}
+        onOpenAdminTracker={() => setAdminTrackerOpen(true)}
+        onOpenAuditLogs={() => setAuditModalOpen(true)}
+        onOpenAiReport={() => setAiReportOpen(true)}
+        onOpenTourGuide={() => setTourGuideOpen(true)}
+        onOpenPrivacyModal={() => setPrivacyModalOpen(true)}
+        onOpenProfileModal={() => setProfileModalOpen(true)}
+        onOpenChecksumModal={() => setChecksumModalOpen(true)}
+        role={role}
+      />
+
+      {/* Dosya Doğrulama & SHA-256 Checksum Modalı */}
+      <ChecksumModal
+        isOpen={checksumModalOpen}
+        onClose={() => setChecksumModalOpen(false)}
       />
     </div>
   );

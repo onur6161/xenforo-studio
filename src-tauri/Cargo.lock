@@ -5036,16 +5036,18 @@ checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
 name = "turkceyama-studio"
-version = "0.2.15"
+version = "0.2.16"
 dependencies = [
  "chrono",
  "futures-util",
+ "hex",
  "keyring",
  "reqwest 0.12.28",
  "rfd",
  "rust-s3",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tauri-plugin-opener",

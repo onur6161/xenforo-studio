@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.15 - Canlı Yönetici Takibi & Operasyonlar, R2 Audit Log Sistemi, AI Günlük Rapor, Adım Adım Açılış ve Sürüm Senkronizasyonu",
+  "notes": "GUNNERIUS v0.2.16 - Hızlı Komut Paleti (Ctrl+K), Gelişmiş Ağ & Aktarım Hızlandırma, Canlı Ping & Benchmark Merkezi, Tek Tıkla Önbellek Temizleme, Windows Başlangıcı, Şifreli Ayar Yedekleme ve SHA-256 Checksum Doğrulama",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0N6bEE3NVAyZ1RKMzFwNjdaVE1zbEJ5eDlLM01TYUxhT1FkdDBlZ1N4bmgrSDF5R0F4L3BBVC9JbzNhNGdVT0hxNVo3QTNLSjJoS0VVdXFmVmNSbHdnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTUxODg5CWZpbGU6R1VOTkVSSVVTXzAuMi4xNV94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE1CjBSbjdIVnUyM1hYUUZUTXMrMnJBTnhzQTl2WjZxQU51WkVhaU9uMkJIcXExK3JDNGtFaGF4L3VUQmR3MkxKUFRwdXFhTU43amFIWkU2cXJIdzlMK0NBPT0K",
-      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.15_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0xqY3kxTjRJQnN2YzBMcmR6OVhmRzJINWlnY3VrM0xTWEhaSzJDSm5IUFVkZFJxWm1FM0RBanRKMndtUmZLallpQyt4Vk9WM3JDd3RYUUZtaFpGSHc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTU3NTM2CWZpbGU6R1VOTkVSSVVTXzAuMi4xNl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjE2Clk2QVdxb2pCVEtUM2VHZktsVUEybCtYOUZTMlNVeDZZdlc0bGx4RDRwRjJ3cFNtaGl6dHUyMEpCUUFocksvdytnbG1Gb2ZPSWErUlJZa1lFSWsrV0J3PT0K",
+      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.16_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-16T11:59:03.611208900+00:00",
-  "version": "0.2.15"
+  "pub_date": "2026-10-16T13:35:40.058654500+00:00",
+  "version": "0.2.16"
 }

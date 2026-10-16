@@ -2,6 +2,7 @@ mod admin_activity;
 mod audit;
 mod cloudflare;
 mod commands;
+mod diagnostics;
 mod r2;
 mod reports;
 mod secrets;
@@ -76,7 +77,14 @@ pub fn run() {
             commands::get_audit_logs,
             commands::generate_daily_ai_report,
             commands::list_daily_ai_reports,
-            commands::get_daily_ai_report_by_date
+            commands::get_daily_ai_report_by_date,
+            commands::get_cache_stats,
+            commands::clear_app_cache,
+            commands::benchmark_network,
+            commands::set_windows_autostart,
+            commands::export_encrypted_settings,
+            commands::import_encrypted_settings,
+            commands::calculate_file_hash
         ])
         .run(tauri::generate_context!())
     {

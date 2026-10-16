@@ -187,7 +187,13 @@ impl AppState {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+fn default_transfer_concurrency() -> usize { 4 }
+fn default_chunk_size_mb() -> usize { 16 }
+fn default_speed_limit_mbps() -> usize { 0 }
+fn default_true() -> bool { true }
+fn default_false() -> bool { false }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AppSettings {
     pub forum_url: String,
     pub xenforo_api_key: String,
@@ -198,6 +204,21 @@ pub struct AppSettings {
     pub r2_secret_access_key: String,
     pub r2_bucket_name: String,
     pub r2_custom_domain: String,
+    // Yeni Gelişmiş Ayarlar
+    #[serde(default = "default_transfer_concurrency")]
+    pub transfer_concurrency: usize,
+    #[serde(default = "default_chunk_size_mb")]
+    pub chunk_size_mb: usize,
+    #[serde(default = "default_speed_limit_mbps")]
+    pub speed_limit_mbps: usize,
+    #[serde(default = "default_true")]
+    pub enable_native_notifications: bool,
+    #[serde(default = "default_true")]
+    pub enable_sound_effects: bool,
+    #[serde(default = "default_false")]
+    pub auto_start_with_windows: bool,
+    #[serde(default = "default_false")]
+    pub minimize_to_tray: bool,
 }
 
 #[tauri::command]
@@ -224,6 +245,18 @@ pub fn save_settings(
     save_secret("r2_bucket_name", &settings.r2_bucket_name)?;
     save_secret("r2_custom_domain", &settings.r2_custom_domain)?;
 
+    // Gelişmiş Performans ve Sistem Ayarları
+    save_secret("transfer_concurrency", &settings.transfer_concurrency.to_string())?;
+    save_secret("chunk_size_mb", &settings.chunk_size_mb.to_string())?;
+    save_secret("speed_limit_mbps", &settings.speed_limit_mbps.to_string())?;
+    save_secret("enable_native_notifications", if settings.enable_native_notifications { "1" } else { "0" })?;
+    save_secret("enable_sound_effects", if settings.enable_sound_effects { "1" } else { "0" })?;
+    save_secret("auto_start_with_windows", if settings.auto_start_with_windows { "1" } else { "0" })?;
+    save_secret("minimize_to_tray", if settings.minimize_to_tray { "1" } else { "0" })?;
+
+    // Windows Başlangıç Kaydı Senkronizasyonu
+    let _ = crate::diagnostics::configure_windows_autostart(settings.auto_start_with_windows);
+
     // Ayarlar güncellendiğinde gösterge paneli önbelleğini sıfırla
     if let Ok(mut cache_guard) = state.dashboard_cache.lock() {
         *cache_guard = None;
@@ -242,6 +275,8 @@ pub fn load_settings(
     if !existing_key.trim().is_empty() && !state.is_admin_session(session_token.as_deref()) {
         return Err("Yetkisiz Erişim: Sunucu güvenlik anahtarlarını görüntülemek için Süper Yönetici oturumu gereklidir.".to_string());
     }
+
+    let auto_start_with_windows = crate::diagnostics::is_windows_autostart_enabled();
 
     Ok(AppSettings {
         forum_url: {
@@ -273,6 +308,13 @@ pub fn load_settings(
             let v = get_secret("r2_custom_domain").unwrap_or_default();
             if v.trim().is_empty() { DEFAULT_R2_CUSTOM_DOMAIN.to_string() } else { v }
         },
+        transfer_concurrency: get_secret("transfer_concurrency").ok().and_then(|v| v.parse().ok()).unwrap_or(4),
+        chunk_size_mb: get_secret("chunk_size_mb").ok().and_then(|v| v.parse().ok()).unwrap_or(16),
+        speed_limit_mbps: get_secret("speed_limit_mbps").ok().and_then(|v| v.parse().ok()).unwrap_or(0),
+        enable_native_notifications: get_secret("enable_native_notifications").map(|v| v == "1").unwrap_or(true),
+        enable_sound_effects: get_secret("enable_sound_effects").map(|v| v == "1").unwrap_or(true),
+        auto_start_with_windows,
+        minimize_to_tray: get_secret("minimize_to_tray").map(|v| v == "1").unwrap_or(false),
     })
 }
 
@@ -288,6 +330,19 @@ pub fn clear_all_settings(
     let _ = delete_secret("forum_url");
     let _ = delete_secret("xenforo_api_key");
     let _ = delete_secret("forum_banned_count");
+    let _ = delete_secret("r2_account_id");
+    let _ = delete_secret("r2_access_key_id");
+    let _ = delete_secret("r2_secret_access_key");
+    let _ = delete_secret("r2_bucket_name");
+    let _ = delete_secret("r2_custom_domain");
+    let _ = delete_secret("transfer_concurrency");
+    let _ = delete_secret("chunk_size_mb");
+    let _ = delete_secret("speed_limit_mbps");
+    let _ = delete_secret("enable_native_notifications");
+    let _ = delete_secret("enable_sound_effects");
+    let _ = delete_secret("auto_start_with_windows");
+    let _ = delete_secret("minimize_to_tray");
+    let _ = crate::diagnostics::configure_windows_autostart(false);
     let _ = delete_secret("r2_account_id");
     let _ = delete_secret("r2_access_key_id");
     let _ = delete_secret("r2_secret_access_key");
@@ -1428,7 +1483,7 @@ pub async fn update_admin_heartbeat(
 ) -> Result<crate::admin_activity::AdminLiveSession, String> {
     let (user_id, username, role) = state.get_session_info(session_token.as_deref());
     let creds = load_r2_creds_from_keyring()?;
-    let app_version = "0.2.15";
+    let app_version = "0.2.16";
 
     crate::admin_activity::send_admin_heartbeat_internal(
         &creds,
@@ -1553,6 +1608,48 @@ pub async fn get_daily_ai_report_by_date(
     crate::reports::get_daily_report_by_date_internal(creds.as_ref(), &date_str).await
 }
 
+#[tauri::command]
+pub fn get_cache_stats() -> Result<crate::diagnostics::CacheStatsResult, String> {
+    crate::diagnostics::calculate_cache_stats()
+}
 
+#[tauri::command]
+pub fn clear_app_cache() -> Result<crate::diagnostics::ClearCacheResult, String> {
+    crate::diagnostics::purge_cache()
+}
 
+#[tauri::command]
+pub async fn benchmark_network(
+    forum_url: String,
+    r2_domain: String,
+) -> Result<crate::diagnostics::BenchmarkResult, String> {
+    crate::diagnostics::run_network_benchmark(&forum_url, &r2_domain).await
+}
 
+#[tauri::command]
+pub fn set_windows_autostart(enabled: bool) -> Result<bool, String> {
+    crate::diagnostics::configure_windows_autostart(enabled)
+}
+
+#[tauri::command]
+pub fn export_encrypted_settings(
+    settings: AppSettings,
+    password: String,
+) -> Result<String, String> {
+    let settings_json = serde_json::to_string(&settings).map_err(|e| format!("Ayarlar serileştirilemedi: {}", e))?;
+    crate::diagnostics::encrypt_settings_payload(&password, &settings_json)
+}
+
+#[tauri::command]
+pub fn import_encrypted_settings(
+    password: String,
+    payload: String,
+) -> Result<AppSettings, String> {
+    let decrypted_json = crate::diagnostics::decrypt_settings_payload(&password, &payload)?;
+    serde_json::from_str(&decrypted_json).map_err(|e| format!("Ayarlar okunamadı: {}", e))
+}
+
+#[tauri::command]
+pub fn calculate_file_hash(path: String) -> Result<crate::diagnostics::FileChecksumResult, String> {
+    crate::diagnostics::compute_sha256(&path)
+}
