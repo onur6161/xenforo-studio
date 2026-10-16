@@ -171,6 +171,7 @@ pub fn detect_provider(url: &str) -> &'static str {
     }
 }
 
+#[derive(Debug)]
 pub struct ResolvedStream {
     pub stream_url: String,
     pub filename: Option<String>,
@@ -1109,3 +1110,23 @@ pub async fn emit_update(manager: &SharedTransferManager, app_handle: &Option<ta
         let _ = app.emit("transfer-queue-update", resp);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_gdrive_resolve() {
+        let client = reqwest::Client::builder()
+            .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .build()
+            .unwrap();
+        let url = "https://drive.usercontent.google.com/download?id=1QhLQL4moft-1sokSYwSd6h8Gd6_Hri-q&export=download&authuser=0";
+        let res = resolve_gdrive(&client, url).await;
+        assert!(res.is_ok(), "Drive resolve failed: {:?}", res.err());
+        let stream = res.unwrap();
+        assert_eq!(stream.filename.as_deref(), Some("Mekan2 Güncell.rar"));
+        assert!(stream.total_bytes.unwrap_or(0) > 2_000_000_000);
+    }
+}
+
