@@ -169,6 +169,22 @@ impl AppState {
         }
         "Süper Yönetici".to_string()
     }
+
+    pub fn get_session_info(&self, token: Option<&str>) -> (u64, String, String) {
+        if let Some(t) = token {
+            if !t.trim().is_empty() {
+                if let Ok(guard) = self.sessions.lock() {
+                    if let Some(session) = guard.get(t) {
+                        return (session.user_id, session.username.clone(), session.role.clone());
+                    }
+                }
+            }
+        }
+        let username = self.get_session_username(token);
+        let user_id = get_secret("session_user_id").ok().and_then(|id| id.parse::<u64>().ok()).unwrap_or(1);
+        let role = get_secret("session_role").unwrap_or_else(|_| "admin".to_string());
+        (user_id, username, role)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -654,7 +670,20 @@ pub async fn delete_r2_object(
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    delete_r2_object_internal(&creds, &key).await
+    let res = delete_r2_object_internal(&creds, &key).await;
+    if res.is_ok() {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_DELETE",
+            Some(&key),
+            &format!("Cloudflare R2 nesnesi silindi: {}", key),
+            "warning",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -668,7 +697,20 @@ pub async fn create_r2_folder(
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    create_r2_folder_internal(&creds, &folder_prefix).await
+    let res = create_r2_folder_internal(&creds, &folder_prefix).await;
+    if res.is_ok() {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_CREATE_FOLDER",
+            Some(&folder_prefix),
+            &format!("R2 yeni klasör oluşturuldu: {}", folder_prefix),
+            "info",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -684,7 +726,20 @@ pub async fn upload_r2_file_from_path(
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    upload_r2_file_internal(&creds, &local_path, &target_key, Some(&app)).await
+    let res = upload_r2_file_internal(&creds, &local_path, &target_key, Some(&app)).await;
+    if let Ok(ref obj) = res {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_UPLOAD",
+            Some(&target_key),
+            &format!("R2'ye dosya yüklendi ({} - {})", obj.name, obj.size_formatted),
+            "success",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -701,7 +756,20 @@ pub async fn upload_r2_file_bytes(
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    upload_r2_bytes_internal(&creds, &target_key, &bytes, &file_name, Some(&app)).await
+    let res = upload_r2_bytes_internal(&creds, &target_key, &bytes, &file_name, Some(&app)).await;
+    if let Ok(ref obj) = res {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_UPLOAD",
+            Some(&target_key),
+            &format!("R2'ye dosya yüklendi ({} - {})", obj.name, obj.size_formatted),
+            "success",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -716,7 +784,20 @@ pub async fn rename_or_move_r2_object(
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    crate::r2::rename_or_move_r2_object_internal(&creds, &from_key, &to_key).await
+    let res = crate::r2::rename_or_move_r2_object_internal(&creds, &from_key, &to_key).await;
+    if res.is_ok() {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_RENAME",
+            Some(&from_key),
+            &format!("R2 nesnesi taşındı/yeniden adlandırıldı: {} -> {}", from_key, to_key),
+            "info",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -726,11 +807,24 @@ pub async fn batch_delete_r2_objects(
     keys: Vec<String>,
 ) -> Result<usize, String> {
     if !state.is_super_admin_session(session_token.as_deref()) {
-        return Err("Yetkisiz Erişim: Toplu dosya silmek için Süper Yönetici yetkisi zorunludur.".to_string());
+        return Err("Yetkisiz Erişim: Toplu dosya silmek için Süper Yönetici yetkisi gereklidir.".to_string());
     }
 
     let creds = load_r2_creds_from_keyring()?;
-    crate::r2::batch_delete_r2_objects_internal(&creds, keys).await
+    let res = crate::r2::batch_delete_r2_objects_internal(&creds, keys.clone()).await;
+    if let Ok(count) = res {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "R2_BATCH_DELETE",
+            None,
+            &format!("Toplu {} adet R2 nesnesi kalıcı olarak silindi", count),
+            "warning",
+        ).await;
+    }
+    res
 }
 
 #[tauri::command]
@@ -1206,7 +1300,7 @@ pub async fn add_remote_transfer(
 
     let creds = load_r2_creds_from_keyring()?;
 
-    add_transfer_job_internal(
+    let res = add_transfer_job_internal(
         &state.transfer_manager,
         &creds,
         &source_url,
@@ -1214,7 +1308,22 @@ pub async fn add_remote_transfer(
         custom_name.as_deref(),
         Some(app),
     )
-    .await
+    .await;
+
+    if let Ok(ref job) = res {
+        let (user_id, username, _) = state.get_session_info(session_token.as_deref());
+        let _ = crate::audit::record_audit_log_internal(
+            Some(&creds),
+            user_id,
+            &username,
+            "TRANSFER_START",
+            Some(&target_key),
+            &format!("Bulut aktarımı başlatıldı: {} ({}) -> {}", job.name, job.provider, target_key),
+            "info",
+        ).await;
+    }
+
+    res
 }
 
 #[tauri::command]
@@ -1307,6 +1416,154 @@ pub async fn remove_transfer_job(
     let resp = state.transfer_manager.lock().await.get_response();
     Ok(resp)
 }
+
+#[tauri::command]
+pub async fn update_admin_heartbeat(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    current_page: String,
+    current_action: String,
+    avatar_color: Option<String>,
+    avatar_emblem: Option<String>,
+) -> Result<crate::admin_activity::AdminLiveSession, String> {
+    let (user_id, username, role) = state.get_session_info(session_token.as_deref());
+    let creds = load_r2_creds_from_keyring()?;
+    let app_version = "0.2.14";
+
+    crate::admin_activity::send_admin_heartbeat_internal(
+        &creds,
+        user_id,
+        &username,
+        &role,
+        avatar_color,
+        avatar_emblem,
+        &current_page,
+        &current_action,
+        app_version,
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn get_active_admins(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+) -> Result<Vec<crate::admin_activity::AdminLiveSession>, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Yönetici oturumu gereklidir.".to_string());
+    }
+    let creds = load_r2_creds_from_keyring()?;
+    crate::admin_activity::get_active_admin_sessions_internal(&creds).await
+}
+
+#[tauri::command]
+pub fn get_my_running_processes(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+) -> Result<Vec<crate::admin_activity::RunningProcessItem>, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Yönetici oturumu gereklidir.".to_string());
+    }
+    Ok(crate::admin_activity::get_local_running_processes())
+}
+
+#[tauri::command]
+pub async fn record_audit_event(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    action_type: String,
+    target: Option<String>,
+    details: String,
+    severity: Option<String>,
+) -> Result<crate::audit::AuditLogEntry, String> {
+    let (user_id, username, _role) = state.get_session_info(session_token.as_deref());
+    let creds = load_r2_creds_from_keyring().ok();
+    let sev = severity.unwrap_or_else(|| "info".to_string());
+
+    crate::audit::record_audit_log_internal(
+        creds.as_ref(),
+        user_id,
+        &username,
+        &action_type,
+        target.as_deref(),
+        &details,
+        &sev,
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn get_audit_logs(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    limit: Option<usize>,
+    date_filter: Option<String>,
+    action_filter: Option<String>,
+) -> Result<Vec<crate::audit::AuditLogEntry>, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Log kayıtlarını görüntülemek için Yönetici oturumu gereklidir.".to_string());
+    }
+    let creds = load_r2_creds_from_keyring().ok();
+    let l = limit.unwrap_or(150);
+
+    crate::audit::get_audit_logs_internal(
+        creds.as_ref(),
+        l,
+        date_filter.as_deref(),
+        action_filter.as_deref(),
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn generate_daily_ai_report(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    force_regenerate: Option<bool>,
+) -> Result<crate::reports::DailyAIReport, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Günlük rapor oluşturmak için Yönetici oturumu gereklidir.".to_string());
+    }
+    let base_url = get_configured_forum_url();
+    let api_key = get_configured_api_key();
+    let creds = load_r2_creds_from_keyring().ok();
+    let username = state.get_session_username(session_token.as_deref());
+
+    crate::reports::generate_daily_ai_report_internal(
+        &base_url,
+        &api_key,
+        creds.as_ref(),
+        &username,
+        force_regenerate.unwrap_or(false),
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn list_daily_ai_reports(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+) -> Result<Vec<crate::reports::DailyReportSummaryItem>, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Rapor listesini görüntülemek için Yönetici oturumu gereklidir.".to_string());
+    }
+    let creds = load_r2_creds_from_keyring().ok();
+    crate::reports::list_daily_reports_internal(creds.as_ref()).await
+}
+
+#[tauri::command]
+pub async fn get_daily_ai_report_by_date(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    date_str: String,
+) -> Result<crate::reports::DailyAIReport, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: Rapor detayını görüntülemek için Yönetici oturumu gereklidir.".to_string());
+    }
+    let creds = load_r2_creds_from_keyring().ok();
+    crate::reports::get_daily_report_by_date_internal(creds.as_ref(), &date_str).await
+}
+
 
 
 

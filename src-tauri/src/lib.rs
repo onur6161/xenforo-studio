@@ -1,6 +1,9 @@
+mod admin_activity;
+mod audit;
 mod cloudflare;
 mod commands;
 mod r2;
+mod reports;
 mod secrets;
 mod transfers;
 mod users;
@@ -66,7 +69,15 @@ pub fn run() {
             commands::resume_transfer_job,
             commands::cancel_transfer_job,
             commands::clear_completed_transfers,
-            commands::remove_transfer_job
+            commands::remove_transfer_job,
+            commands::update_admin_heartbeat,
+            commands::get_active_admins,
+            commands::get_my_running_processes,
+            commands::record_audit_event,
+            commands::get_audit_logs,
+            commands::generate_daily_ai_report,
+            commands::list_daily_ai_reports,
+            commands::get_daily_ai_report_by_date
         ])
         .run(tauri::generate_context!())
     {

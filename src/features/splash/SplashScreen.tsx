@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircle2, Loader2, ShieldCheck, Zap, Server, Lock, Cpu, Globe } from "lucide-react";
 
+import packageJson from "../../../package.json";
+
 interface SplashScreenProps {
   onFinish: () => void;
 }
@@ -19,42 +21,49 @@ const INITIALIZATION_PIPELINE: InitTask[] = [
     name: "Windows DPAPI Şifreleme Kasası",
     detail: "Donanım seviyesi API ve oturum anahtarları doğrulandı",
     icon: <Lock className="w-3.5 h-3.5 text-amber-400" />,
-    durationMs: 400,
+    durationMs: 750,
   },
   {
     id: "xenforo",
     name: "XenForo REST API v2 Bağlantısı",
     detail: "turkceyama.org çekirdek sunucusu el sıkışması tamamlandı (28ms)",
     icon: <Globe className="w-3.5 h-3.5 text-cyan-400" />,
-    durationMs: 450,
+    durationMs: 800,
   },
   {
     id: "r2",
     name: "Cloudflare R2 Yüksek Hızlı CDN",
     detail: "indir.turkceyama.org S3 depolama havuzu hazırlandı",
     icon: <Server className="w-3.5 h-3.5 text-emerald-400" />,
-    durationMs: 400,
+    durationMs: 750,
   },
   {
     id: "s3_multipart",
-    name: "S3 Multipart Paralel Akış Motoru",
-    detail: "4 eşzamanlı iş parçacığı ve 32 MB dinamik chunk mimarisi aktif",
+    name: "S3 Multipart & Bulut Aktarım Kuyruğu",
+    detail: "Google Drive, Mediafire ve Yandex doğrudan aktarım motoru hazır",
     icon: <Zap className="w-3.5 h-3.5 text-indigo-400" />,
-    durationMs: 380,
+    durationMs: 700,
   },
   {
     id: "telemetry",
-    name: "Yetki Matrisi & Telemetri Katmanı",
-    detail: "Süper Yönetici güvenlik protokolü ve hata kütüğü senkronize",
+    name: "Canlı Yönetici Takibi & Telemetri Katmanı",
+    detail: "Yönetici oturumları ve çalışan süreçlerin senkronizasyonu aktif",
     icon: <Cpu className="w-3.5 h-3.5 text-purple-400" />,
-    durationMs: 350,
+    durationMs: 750,
+  },
+  {
+    id: "audit_ai",
+    name: "R2 Denetim Kütüğü (Audit Log) & AI Analitik",
+    detail: "Kalıcı işlem kütükleri ve günlük yapay zeka rapor motoru bağlandı",
+    icon: <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />,
+    durationMs: 700,
   },
 ];
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const [completedTaskIds, setCompletedTaskIds] = useState<string[]>([]);
   const [currentRunningIndex, setCurrentRunningIndex] = useState(0);
-  const [progress, setProgress] = useState(8);
+  const [progress, setProgress] = useState(5);
 
   useEffect(() => {
     let index = 0;
@@ -75,7 +84,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           } else {
             setTimeout(() => {
               onFinish();
-            }, 600);
+            }, 800);
           }
         }, task.durationMs);
       }
@@ -83,7 +92,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
 
     const initialTimer = setTimeout(() => {
       executeNextTask();
-    }, 250);
+    }, 400);
 
     return () => clearTimeout(initialTimer);
   }, [onFinish]);
@@ -112,7 +121,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>GUNNERIUS STUDIO PRO</span>
           <span className="text-gray-500">•</span>
-          <span className="text-amber-400 font-bold">v0.2.5 ENTERPRISE</span>
+          <span className="text-amber-400 font-bold">v{packageJson.version} ENTERPRISE</span>
         </div>
 
         {/* Kurumsal Logo & Parıltı Efekti */}
@@ -147,7 +156,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
               Sistem Çekirdeği Başlatma Telemetrisi
             </span>
             <span className="text-amber-400 font-bold">
-              {allCompleted ? "TAMAMLANDI (6/6)" : `ADIM ${Math.min(currentRunningIndex + 1, INITIALIZATION_PIPELINE.length)}/5`}
+              {allCompleted ? `TAMAMLANDI (${INITIALIZATION_PIPELINE.length}/${INITIALIZATION_PIPELINE.length})` : `ADIM ${Math.min(currentRunningIndex + 1, INITIALIZATION_PIPELINE.length)}/${INITIALIZATION_PIPELINE.length}`}
             </span>
           </div>
 

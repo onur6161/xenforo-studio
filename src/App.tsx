@@ -37,6 +37,10 @@ import { ProfileThemeModal } from "./components/ProfileThemeModal";
 import { CorporateAvatar } from "./components/CorporateAvatar";
 import { FloatingTransferBar } from "./components/FloatingTransferBar";
 import { ToastProvider } from "./components/Toast";
+import packageJson from "../package.json";
+import { AdminTrackerModal } from "./features/admins/AdminTrackerModal";
+import { AuditLogModal } from "./features/audit/AuditLogModal";
+import { AIDailyReportModal } from "./features/reports/AIDailyReportModal";
 import "./App.css";
 
 const MainApp: React.FC = () => {
@@ -51,6 +55,9 @@ const MainApp: React.FC = () => {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [tourGuideOpen, setTourGuideOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [adminTrackerOpen, setAdminTrackerOpen] = useState(false);
+  const [auditModalOpen, setAuditModalOpen] = useState(false);
+  const [aiReportOpen, setAiReportOpen] = useState(false);
 
   // Kurumsal Avatar Tercihleri (Kalıcı Kayıt)
   const [avatarColor, setAvatarColor] = useState<string>(() => {
@@ -168,6 +175,35 @@ const MainApp: React.FC = () => {
     };
   }, []);
 
+  // 5. CANLI YÖNETİCİ & SÜREÇ HEARTBEAT SENKRONİZASYONU (Her 15 saniyede bir R2'ye oturum bildirimi)
+  useEffect(() => {
+    if (!user || !sessionToken) return;
+
+    const actionMap: Record<string, string> = {
+      dashboard: "Genel Durum & Telemetri İncelemesi",
+      files: "Cloudflare R2 Dosya Yönetimi",
+      transfers: "Aktarım Kuyruğu & Stream Senkronizasyonu",
+      topics: "XenForo Konular & Yapay Zeka Analizi",
+      users: "Üye Yönetimi & Güvenlik Denetimi",
+      release: "Sürüm & Dağıtım Merkezi (R2)",
+      settings: "Sunucu & Bağlantı Ayarları",
+    };
+
+    const sendHeartbeat = () => {
+      invoke("update_admin_heartbeat", {
+        sessionToken,
+        currentPage: activeTab,
+        currentAction: actionMap[activeTab] || "Stüdyo Gezintisi",
+        avatarColor,
+        avatarEmblem,
+      }).catch(() => {});
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 15000);
+    return () => clearInterval(interval);
+  }, [user, sessionToken, activeTab, avatarColor, avatarEmblem]);
+
   const handleLoginSuccess = (loggedInUser: ForumUser, userRole: string, token?: string) => {
     setUser(loggedInUser);
     setRole(userRole);
@@ -272,6 +308,7 @@ const MainApp: React.FC = () => {
             </button>
 
             <button
+              data-tour="sidebar-transfers"
               onClick={() => setActiveTab("transfers")}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                 activeTab === "transfers"
@@ -366,7 +403,7 @@ const MainApp: React.FC = () => {
           )}
 
           <div className="mt-3 pt-2.5 border-t border-[#1e232e] flex items-center justify-between text-[11px] text-gray-500">
-            <span className="font-mono font-semibold text-gray-400">GUNNERIUS Studio v0.2.5</span>
+            <span className="font-mono font-semibold text-gray-400">GUNNERIUS Studio v{packageJson.version}</span>
             <span className="flex items-center gap-1 text-emerald-400 font-mono">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
               Aktif
@@ -393,6 +430,40 @@ const MainApp: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* Canlı Yönetici Takibi & Süreç İzleme Butonu */}
+            <button
+              data-tour="topbar-admins"
+              onClick={() => setAdminTrackerOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-cyan-500/30 rounded-xl text-xs text-cyan-300 hover:text-white transition cursor-pointer shadow-sm"
+              title="Çevrimiçi yöneticilerin anlık işlemlerini ve çalışan süreçlerini izle"
+            >
+              <Users className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Yöneticiler</span>
+            </button>
+
+            {/* Denetim Kütüğü (Audit Log) Butonu */}
+            <button
+              data-tour="topbar-audit"
+              onClick={() => setAuditModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-indigo-500/30 rounded-xl text-xs text-indigo-300 hover:text-white transition cursor-pointer shadow-sm"
+              title="R2 Bulut Entegre Detaylı Sistem Denetim Kütüğü (Audit Log)"
+            >
+              <Lock className="w-3.5 h-3.5 text-indigo-400" />
+              <span>Denetim Kütüğü</span>
+            </button>
+
+            {/* AI Günlük Yönetici Raporu Butonu */}
+            <button
+              data-tour="topbar-ai-report"
+              onClick={() => setAiReportOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#181d28] hover:bg-[#232a3b] border border-purple-500/30 rounded-xl text-xs text-purple-300 hover:text-white transition cursor-pointer shadow-sm"
+              title="Yapay Zeka Günlük Yönetici İstihbarat & İstatistik Raporu"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span>AI Günlük Rapor</span>
+            </button>
+
             {/* İnteraktif Öğretici İlerleme Rehberi Butonu */}
             <button
               onClick={() => setTourGuideOpen(true)}
@@ -587,6 +658,28 @@ const MainApp: React.FC = () => {
 
       {/* Otomatik & Manuel Güncelleme Modalı */}
       <UpdateModal manualCheckTrigger={updateTrigger} />
+
+      {/* Canlı Yönetici Takibi & Süreç İzleme Modalı */}
+      <AdminTrackerModal
+        isOpen={adminTrackerOpen}
+        onClose={() => setAdminTrackerOpen(false)}
+        sessionToken={sessionToken}
+        currentUsername={user?.username}
+      />
+
+      {/* Sistem & Yönetici Denetim Kütüğü (Audit Log) Modalı */}
+      <AuditLogModal
+        isOpen={auditModalOpen}
+        onClose={() => setAuditModalOpen(false)}
+        sessionToken={sessionToken}
+      />
+
+      {/* Yapay Zeka Günlük Yönetici İstihbarat Raporu Modalı */}
+      <AIDailyReportModal
+        isOpen={aiReportOpen}
+        onClose={() => setAiReportOpen(false)}
+        sessionToken={sessionToken}
+      />
     </div>
   );
 };
