@@ -1,11 +1,11 @@
 {
-  "notes": "GUNNERIUS v0.2.12 - Google Drive Buyuk Dosya Virus Atlama & Otomatik Form Cozucu Fix",
+  "notes": "GUNNERIUS v0.2.13 - Cloudflare R2 Eşit Parça Kuralı, CF Doğrulama Motoru ve Sadeleştirilmiş Kuyruk",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0p6Q1hpd0gxaFBRQmMva1h5L2hXd0plU25aakFjNGRBVGtvU2xHZzRhRHR2ZVNETXB4dEJPVDZFcDQrb2FSanZHTTNlVlllSWpYRXZJVUtXeDBuM2cwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTM5MjYxCWZpbGU6R1VOTkVSSVVTXzAuMi4xMl94NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjEyClZqSlkzUHR5UGcyQUwrd3FkUXRZcVhVdS9ETk00czg5NXdqckhxUy9uaStzVG9JT1BCYUFxUGFlRmZsbkpxUXFZMFZXR3hHQlZBOXdlYW1MTXlJbUJ3PT0K",
-      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.12_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSRytsZGFDejZlZ0VHNndMRHY4Sk9zY2RWcjBsN2h5NlRvUDF3L0xyTEJDVnBEUURnbThMQnROQkh2YlNKbWJ1K2VKQ0I4dC8rU1BMVW84ZURLbVhweEhCZGlZR2NSRFFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzkyMTQyOTU1CWZpbGU6R1VOTkVSSVVTXzAuMi4xM194NjQtc2V0dXAuZXhlCXZlcnNpb246MC4yLjEzCkZybWRlaVRGY1IzN0VNZUNPb3IyWHBhQmtqV3VOL2lkVXVrZlM3YURsNjB3cmp6bnNiU0ppOXY5LzhJZ1htM3BpT093SGtpZEdyTngxSXZaL1dYaURRPT0K",
+      "url": "https://indir.turkceyama.org/updates/GUNNERIUS_0.2.13_x64-setup.exe"
     }
   },
-  "pub_date": "2026-10-16T08:29:21.039848100+00:00",
-  "version": "0.2.12"
+  "pub_date": "2026-10-16T09:30:20.942273600+00:00",
+  "version": "0.2.13"
 }

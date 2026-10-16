@@ -105,7 +105,15 @@ impl TransferManager {
     }
 
     pub fn clear_completed(&mut self) {
-        self.jobs.retain(|j| j.status == "running" || j.status == "queued" || j.status == "paused");
+        self.jobs.retain(|j| j.status == "running" || j.status == "verifying" || j.status == "queued" || j.status == "paused");
+    }
+
+    pub fn remove_job(&mut self, job_id: &str) -> bool {
+        let prev_len = self.jobs.len();
+        self.jobs.retain(|j| j.id != job_id);
+        self.cancel_tokens.remove(job_id);
+        self.pause_tokens.remove(job_id);
+        self.jobs.len() < prev_len
     }
 
     pub fn get_response(&self) -> TransferQueueResponse {
@@ -118,7 +126,7 @@ impl TransferManager {
 
         for j in &self.jobs {
             match j.status.as_str() {
-                "running" => {
+                "running" | "verifying" => {
                     active_count += 1;
                     current_bandwidth_mbps += j.speed_mbps;
                     total_transferred_bytes += j.transferred_bytes;
@@ -961,9 +969,9 @@ async fn run_transfer_worker(
             current_buffer.extend_from_slice(&chunk);
             transferred += chunk.len() as u64;
 
-            // Tampon 16 MB dolduğunda R2'ye yükle
-            if current_buffer.len() >= chunk_size {
-                let chunk_data = std::mem::take(&mut current_buffer);
+            // Tampon 16 MB'a ulaştığında TAM OLARAK 16 MB'lık parçalar halinde R2'ye yükle (Cloudflare R2 kuralı)
+            while current_buffer.len() >= chunk_size {
+                let chunk_data: Vec<u8> = current_buffer.drain(..chunk_size).collect();
                 let put_res = bucket
                     .put_multipart_chunk(chunk_data, &target_key, part_number, &upload_id, &resp_content_type)
                     .await;
@@ -972,7 +980,6 @@ async fn run_transfer_worker(
                     Ok(part) => {
                         parts_uploaded.push(part);
                         part_number += 1;
-                        current_buffer = Vec::with_capacity(chunk_size);
                     }
                     Err(e) => {
                         let _ = bucket.abort_upload(&target_key, &upload_id).await;
@@ -1018,7 +1025,7 @@ async fn run_transfer_worker(
             }
         }
 
-        // Kalan son tamponu yükle
+        // Kalan son parçayı (trailing part) yükle
         if !current_buffer.is_empty() {
             let chunk_data = std::mem::take(&mut current_buffer);
             let put_res = bucket
@@ -1037,28 +1044,111 @@ async fn run_transfer_worker(
             }
         }
 
+        // Parçaların part_number sırasına göre dizildiğinden emin ol
+        parts_uploaded.sort_by_key(|p| p.part_number);
+
+        // AŞAMA: CF Tarafında Kontrol Ediliyor
+        {
+            let mut guard = manager.lock().await;
+            if let Some(j) = guard.jobs.iter_mut().find(|x| x.id == job_id) {
+                j.stage = "☁️ CF Tarafında Kontrol Ediliyor...".to_string();
+                j.status = "verifying".to_string();
+                j.percentage = 100.0;
+                j.speed_mbps = 0.0;
+                j.eta_seconds = 0;
+            }
+        }
+        emit_update(&manager, &app_handle).await;
+
         // Multipart Yüklemeyi Mühürle / Tamamla
         let complete_res = bucket
             .complete_multipart_upload(&target_key, &upload_id, parts_uploaded)
             .await;
 
-        if let Err(e) = complete_res {
-            mark_failed(&manager, &job_id, &format!("Multipart mühürleme hatası: {}", e), &app_handle).await;
-            return;
+        match complete_res {
+            Ok(resp) => {
+                if !(200..300).contains(&resp.status_code()) {
+                    let body_err = resp.as_str().unwrap_or("Bilinmeyen XML yanıtı");
+                    let _ = bucket.abort_upload(&target_key, &upload_id).await;
+                    mark_failed(
+                        &manager,
+                        &job_id,
+                        &format!("Cloudflare R2 onay reddi (HTTP {}): {}", resp.status_code(), body_err),
+                        &app_handle,
+                    )
+                    .await;
+                    return;
+                }
+            }
+            Err(e) => {
+                let _ = bucket.abort_upload(&target_key, &upload_id).await;
+                mark_failed(
+                    &manager,
+                    &job_id,
+                    &format!("Cloudflare R2 mühürleme bağlantı hatası: {}", e),
+                    &app_handle,
+                )
+                .await;
+                return;
+            }
         }
     }
 
-    // Tamamlandı olarak işaretle
+    // AŞAMA: Fiziksel Dosya Varlığı Doğrulaması (Cloudflare R2 Head Object)
     {
         let mut guard = manager.lock().await;
         if let Some(j) = guard.jobs.iter_mut().find(|x| x.id == job_id) {
-            j.transferred_bytes = if total_length > 0 { total_length } else { transferred };
-            j.total_bytes = if total_length > 0 { total_length } else { transferred };
+            j.stage = "☁️ CF Tarafında Kontrol Ediliyor...".to_string();
+            j.status = "verifying".to_string();
+        }
+    }
+    emit_update(&manager, &app_handle).await;
+
+    let head_check = bucket.head_object(&target_key).await;
+    let verified_size = match head_check {
+        Ok((head_data, status)) if (200..300).contains(&status) => {
+            head_data.content_length.filter(|&l| l > 0).map(|l| l as u64).unwrap_or(transferred)
+        }
+        Ok((_, status)) => {
+            mark_failed(
+                &manager,
+                &job_id,
+                &format!("Cloudflare R2'de dosya doğrulanamadı (HTTP {})", status),
+                &app_handle,
+            )
+            .await;
+            return;
+        }
+        Err(e) => {
+            mark_failed(
+                &manager,
+                &job_id,
+                &format!("Cloudflare R2 fiziksel kontrol hatası: {}", e),
+                &app_handle,
+            )
+            .await;
+            return;
+        }
+    };
+
+    let elapsed_total_secs = start_time.elapsed().as_secs();
+    let elapsed_formatted = if elapsed_total_secs >= 60 {
+        format!("{} dk {} sn", elapsed_total_secs / 60, elapsed_total_secs % 60)
+    } else {
+        format!("{} sn", elapsed_total_secs)
+    };
+
+    // Tamamlandı olarak işaretle (Geçen süre bilgisi ile)
+    {
+        let mut guard = manager.lock().await;
+        if let Some(j) = guard.jobs.iter_mut().find(|x| x.id == job_id) {
+            j.transferred_bytes = verified_size;
+            j.total_bytes = verified_size;
             j.percentage = 100.0;
             j.speed_mbps = 0.0;
             j.eta_seconds = 0;
             j.status = "completed".to_string();
-            j.stage = "✅ Tamamlandı (R2'ye fiziksel olarak kaydedildi)".to_string();
+            j.stage = format!("✅ Tamamlandı • Geçen Süre: {}", elapsed_formatted);
             j.completed_at = Some(Local::now().format("%Y-%m-%d %H:%M:%S").to_string());
         }
     }

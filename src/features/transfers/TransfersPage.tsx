@@ -250,6 +250,15 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
     }
   };
 
+  const handleRemoveJob = async (jobId: string) => {
+    try {
+      const res = await invoke<TransferQueueResponse>("remove_transfer_job", { sessionToken, jobId });
+      setQueueData(res);
+    } catch (err: any) {
+      setFeedbackMsg({ type: "error", text: String(err) });
+    }
+  };
+
   const handleClearCompleted = async () => {
     try {
       const res = await invoke<TransferQueueResponse>("clear_completed_transfers", { sessionToken });
@@ -287,7 +296,8 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
   };
 
   const filteredJobs = queueData.jobs.filter((j) => {
-    if (filterStatus !== "all" && j.status !== filterStatus) return false;
+    if (filterStatus === "running" && !(j.status === "running" || j.status === "verifying")) return false;
+    if (filterStatus !== "all" && filterStatus !== "running" && j.status !== filterStatus) return false;
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       return (
@@ -323,14 +333,11 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-extrabold text-white tracking-wide">
-                  Aktarım Kuyruğu & Senkronizasyon
+                  Aktarım Kuyruğu
                 </h1>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-950/70 border border-cyan-500/40 text-cyan-400">
-                  FAZ 2 CANLI
-                </span>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">
-                Sıfır yerel disk alanı ile doğrudan uzak URL'den Cloudflare R2'ye S3 multipart akışı (16 MB Stream Buffer).
+                Uzak bağlantılardan Cloudflare R2 bulut depolama alanına doğrudan, yerel disksiz akış transferi.
               </p>
             </div>
           </div>
@@ -493,7 +500,7 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
         <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
           {[
             { id: "all", label: "Tümü", count: queueData.jobs.length },
-            { id: "running", label: "Aktif Akış", count: queueData.jobs.filter((j) => j.status === "running").length },
+            { id: "running", label: "Aktif Akış", count: queueData.jobs.filter((j) => j.status === "running" || j.status === "verifying").length },
             { id: "queued", label: "Kuyrukta", count: queueData.jobs.filter((j) => j.status === "queued").length },
             { id: "paused", label: "Duraklatılan", count: queueData.jobs.filter((j) => j.status === "paused").length },
             { id: "completed", label: "Tamamlanan", count: queueData.jobs.filter((j) => j.status === "completed").length },
@@ -570,6 +577,7 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
         ) : (
           filteredJobs.map((job) => {
             const isRunning = job.status === "running";
+            const isVerifying = job.status === "verifying";
             const isPaused = job.status === "paused";
             const isQueued = job.status === "queued";
             const isCompleted = job.status === "completed";
@@ -579,9 +587,15 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
             return (
               <div
                 key={job.id}
-                className={`p-4 rounded-2xl bg-[#14171e] border transition-all ${
+                className={`p-3.5 rounded-2xl bg-[#14171e] border transition-all ${
                   isRunning
                     ? "border-[#d4af37]/50 shadow-lg shadow-[#d4af37]/5 bg-gradient-to-r from-[#14171e] to-[#181d27]"
+                    : isVerifying
+                    ? "border-cyan-500/50 shadow-lg shadow-cyan-500/5 bg-gradient-to-r from-[#14171e] to-[#14202a]"
+                    : isCompleted
+                    ? "border-emerald-500/30 hover:border-emerald-500/50"
+                    : isFailed
+                    ? "border-rose-500/30 hover:border-rose-500/50"
                     : "border-[#2b303c] hover:border-gray-600"
                 }`}
               >
@@ -589,9 +603,11 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                   {/* Sol Taraf: Dosya Bilgisi & İkon */}
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border mt-0.5 ${
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border mt-0.5 ${
                         isRunning
                           ? "bg-amber-500/15 border-amber-500/40 text-[#d4af37]"
+                          : isVerifying
+                          ? "bg-cyan-500/15 border-cyan-500/40 text-cyan-400"
                           : isCompleted
                           ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
                           : isFailed
@@ -602,15 +618,17 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                       }`}
                     >
                       {isRunning ? (
-                        <Activity className="w-5 h-5 animate-pulse" />
+                        <Activity className="w-4 h-4 animate-pulse" />
+                      ) : isVerifying ? (
+                        <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
                       ) : isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5" />
+                        <CheckCircle2 className="w-4 h-4" />
                       ) : isFailed ? (
-                        <AlertCircle className="w-5 h-5" />
+                        <AlertCircle className="w-4 h-4" />
                       ) : isPaused ? (
-                        <Pause className="w-5 h-5" />
+                        <Pause className="w-4 h-4" />
                       ) : (
-                        <Clock className="w-5 h-5" />
+                        <Clock className="w-4 h-4" />
                       )}
                     </div>
 
@@ -637,6 +655,8 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                           className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
                             isRunning
                               ? "bg-amber-950/60 text-[#d4af37] border-[#d4af37]/40 animate-pulse"
+                              : isVerifying
+                              ? "bg-cyan-950/60 text-cyan-300 border-cyan-500/40 animate-pulse"
                               : isCompleted
                               ? "bg-emerald-950/60 text-emerald-300 border-emerald-500/40"
                               : isFailed
@@ -650,6 +670,8 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                         >
                           {isRunning
                             ? "AKTARIYOR"
+                            : isVerifying
+                            ? "CF KONTROLÜ"
                             : isCompleted
                             ? "TAMAMLANDI"
                             : isFailed
@@ -667,6 +689,8 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                         <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-300/90 font-mono">
                           {isRunning ? (
                             <Zap className="w-3.5 h-3.5 text-[#d4af37] animate-pulse shrink-0" />
+                          ) : isVerifying ? (
+                            <RefreshCw className="w-3.5 h-3.5 text-cyan-400 animate-spin shrink-0" />
                           ) : isCompleted ? (
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                           ) : (
@@ -676,16 +700,16 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                         </div>
                       )}
 
-                      {/* URL ve Hedef Konum */}
+                      {/* Hedef Konum */}
                       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
-                        <span className="flex items-center gap-1 font-mono text-[11px] text-gray-400 truncate max-w-sm">
-                          <ExternalLink className="w-3 h-3 shrink-0 text-gray-500" />
-                          <span className="truncate">{job.source_url}</span>
-                        </span>
-                        <span className="text-gray-600">➔</span>
                         <span className="flex items-center gap-1 font-mono text-[11px] text-amber-300/80">
                           <Folder className="w-3 h-3 shrink-0 text-[#d4af37]" />
                           {job.target_key}
+                        </span>
+                        <span className="text-gray-600">•</span>
+                        <span className="flex items-center gap-1 font-mono text-[11px] text-gray-500 truncate max-w-xs" title={job.source_url}>
+                          <ExternalLink className="w-3 h-3 shrink-0 text-gray-600" />
+                          <span className="truncate">{job.source_url}</span>
                         </span>
                       </div>
 
@@ -719,6 +743,12 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                               {formatSeconds(job.eta_seconds)}
                             </span>
                           </>
+                        )}
+                        {isVerifying && (
+                          <span className="text-cyan-400 font-bold flex items-center gap-1">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            Cloudflare R2 Onaylanıyor
+                          </span>
                         )}
                         {isCompleted && (
                           <span className="text-emerald-400">{job.completed_at || "R2'de Aktif"}</span>
@@ -792,31 +822,53 @@ export const TransfersPage: React.FC<TransfersPageProps> = ({
                               Dosyalara Git
                             </button>
                           )}
+
+                          <button
+                            onClick={() => handleRemoveJob(job.id)}
+                            className="p-2 rounded-xl bg-[#1b202a] border border-[#2b303c] text-gray-500 hover:text-rose-400 hover:border-rose-500/40 transition cursor-pointer"
+                            title="Kuyruktan Sil"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
                         </>
+                      )}
+
+                      {(isFailed || isCancelled) && (
+                        <button
+                          onClick={() => handleRemoveJob(job.id)}
+                          className="p-2 rounded-xl bg-[#1b202a] border border-rose-500/30 text-rose-400 hover:bg-rose-950/40 transition cursor-pointer"
+                          title="Kaydı Sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       )}
                     </div>
                   </div>
                 </div>
 
-                {/* İlerleme Çubuğu */}
-                {(isRunning || isPaused || isCompleted) && (
+                {/* İlerleme Çubuğu (Yalnızca aktarım veya doğrulama sırasında gösterilir) */}
+                {(isRunning || isPaused || isVerifying) && (
                   <div className="mt-3">
                     <div className="flex items-center justify-between text-[11px] font-mono text-gray-400 mb-1">
-                      <span>Aktarım İlerlemesi</span>
+                      <span>
+                        {isVerifying
+                          ? "☁️ Cloudflare R2 Mühürleme & Fiziksel Doğrulama"
+                          : "Aktarım İlerlemesi"}
+                      </span>
                       <span className="font-bold text-white">
-                        {isCompleted ? "100%" : `${job.percentage.toFixed(1)}%`}
+                        {isVerifying ? "100%" : `${job.percentage.toFixed(1)}%`}
                       </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-[#101319] overflow-hidden border border-[#2b303c]">
                       <div
                         className={`h-full transition-all duration-300 ${
-                          isCompleted
-                            ? "bg-emerald-500"
+                          isVerifying
+                            ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 animate-pulse"
                             : isPaused
                             ? "bg-amber-500"
                             : "bg-gradient-to-r from-amber-500 via-[#d4af37] to-cyan-400 animate-pulse"
                         }`}
-                        style={{ width: `${Math.min(100, Math.max(0, job.percentage))}%` }}
+                        style={{ width: `${Math.min(100, Math.max(0, isVerifying ? 100 : job.percentage))}%` }}
                       />
                     </div>
                   </div>

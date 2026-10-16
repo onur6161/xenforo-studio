@@ -8,7 +8,7 @@ export interface TransferJob {
   percentage: number;
   speed_mbps: number;
   eta_seconds: number;
-  status: "queued" | "running" | "paused" | "completed" | "failed" | "cancelled";
+  status: "queued" | "running" | "verifying" | "paused" | "completed" | "failed" | "cancelled" | string;
   provider?: "gdrive" | "yandex" | "mediafire" | "direct" | string;
   stage?: string;
   error_message?: string | null;

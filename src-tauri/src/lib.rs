@@ -65,7 +65,8 @@ pub fn run() {
             commands::pause_transfer_job,
             commands::resume_transfer_job,
             commands::cancel_transfer_job,
-            commands::clear_completed_transfers
+            commands::clear_completed_transfers,
+            commands::remove_transfer_job
         ])
         .run(tauri::generate_context!())
     {

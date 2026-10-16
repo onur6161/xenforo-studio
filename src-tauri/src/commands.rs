@@ -1289,5 +1289,24 @@ pub async fn clear_completed_transfers(
     Ok(resp)
 }
 
+#[tauri::command]
+pub async fn remove_transfer_job(
+    state: tauri::State<'_, AppState>,
+    session_token: Option<String>,
+    job_id: String,
+    app: tauri::AppHandle,
+) -> Result<TransferQueueResponse, String> {
+    if !state.is_admin_session(session_token.as_deref()) {
+        return Err("Yetkisiz Erişim: İşlem için Yönetici oturumu gereklidir.".to_string());
+    }
+    {
+        let mut guard = state.transfer_manager.lock().await;
+        guard.remove_job(&job_id);
+    }
+    emit_update(&state.transfer_manager, &Some(app)).await;
+    let resp = state.transfer_manager.lock().await.get_response();
+    Ok(resp)
+}
+
 
 
